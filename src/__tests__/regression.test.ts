@@ -24,4 +24,15 @@ describe("Regression Suite", () => {
       expect(mod).toBeDefined();
     });
   });
+
+  describe("Sprint 3 - Section Mode", () => {
+    it("imports sprint-3 unit tests successfully", async () => {
+      const mod = await import("./unit/sprint-3/section-stage.test");
+      expect(mod).toBeDefined();
+    });
+    it("imports sprint-3 integration tests successfully", async () => {
+      const mod = await import("./integration/sprint-3/section-stage-canvas.test");
+      expect(mod).toBeDefined();
+    });
+  });
 });

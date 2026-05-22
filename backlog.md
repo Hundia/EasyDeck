@@ -19,7 +19,7 @@ Build a production-ready scrollytelling presentation engine that delivers Apple-
 
 ---
 
-## Sprint 1: Project Bootstrap & Schema Layer
+## Sprint 1: Project Bootstrap & Schema Layer ✅
 **Goal**: Initialize Next.js project, install dependencies, define Zod schemas.
 **Estimated complexity**: Medium | **Agent**: Sonnet 4.6
 

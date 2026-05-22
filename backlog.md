@@ -66,7 +66,7 @@ Build a production-ready scrollytelling presentation engine that delivers Apple-
 
 ---
 
-## Sprint 3: Section Mode (Default)
+## Sprint 3: Section Mode (Default) ✅
 **Goal**: Implement Observer-driven section transitions — the core UX.
 **Estimated complexity**: High | **Agent**: Sonnet 4.6 (complex cross-cutting logic)
 

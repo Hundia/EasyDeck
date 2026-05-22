@@ -43,7 +43,7 @@ Build a production-ready scrollytelling presentation engine that delivers Apple-
 
 ---
 
-## Sprint 2: Canvas Engine & Playhead
+## Sprint 2: Canvas Engine & Playhead ✅
 **Goal**: Build the playhead-agnostic ImageSequenceCanvas component.
 **Estimated complexity**: Medium | **Agent**: Sonnet 4.6
 

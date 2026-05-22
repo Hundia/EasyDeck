@@ -5,8 +5,22 @@ import { describe, it, expect } from "vitest";
 describe("Regression Suite", () => {
   describe("Sprint 1 - Schema Layer", () => {
     it("imports sprint-1 tests successfully", async () => {
-      // This ensures the sprint-1 test file is valid and importable
       const mod = await import("./unit/sprint-1/schema-validation.test");
+      expect(mod).toBeDefined();
+    });
+  });
+
+  describe("Sprint 2 - Canvas Engine", () => {
+    it("imports sprint-2 unit tests successfully", async () => {
+      const mod = await import("./unit/sprint-2/canvas-engine.test");
+      expect(mod).toBeDefined();
+    });
+    it("imports sprint-2 component tests successfully", async () => {
+      const mod = await import("./unit/sprint-2/image-sequence-canvas.test");
+      expect(mod).toBeDefined();
+    });
+    it("imports sprint-2 integration tests successfully", async () => {
+      const mod = await import("./integration/sprint-2/canvas-playhead-integration.test");
       expect(mod).toBeDefined();
     });
   });

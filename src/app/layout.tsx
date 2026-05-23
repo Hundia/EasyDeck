@@ -3,8 +3,9 @@ import { SkipToContent } from '@/components/SkipToContent'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'ScrollyTelling Presentation Framework',
-  description: 'A scrollytelling presentation engine',
+  title: 'EasyDeck — Build stories that scroll.',
+  description:
+    'Three transition modes. One <Stage> component. Canvas-driven image sequences with GSAP, Lenis, and full accessibility baked in.',
 }
 
 export default function RootLayout({

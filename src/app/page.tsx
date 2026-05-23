@@ -151,13 +151,17 @@ function Nav() {
 
         {/* Links */}
         <div className="flex items-center gap-5">
-          {["#modes", "#features"].map((href) => (
+          {([
+            ["#modes",          "Modes"],
+            ["#features",       "Features"],
+            ["#start-building", "Start building"],
+          ] as const).map(([href, label]) => (
             <a
               key={href}
               href={href}
               className="hidden sm:block text-zinc-500 hover:text-white text-sm transition-colors duration-150"
             >
-              {href.replace("#", "").charAt(0).toUpperCase() + href.slice(2)}
+              {label}
             </a>
           ))}
           <a
@@ -814,6 +818,288 @@ const STATS = [
   { value: "MIT",         label: "License" },
 ] as const;
 
+// ─── Getting Started Section ─────────────────────────────────────────────────
+
+const STEPS = [
+  {
+    number: "01",
+    title: "Clone & install",
+    summary: "Get the framework running locally in under a minute.",
+    tip: "Requires Node 20+. The dev server starts on localhost:3000.",
+    code: (
+      <>
+        <span className="text-zinc-500"># Clone the repo</span>{"\n"}
+        <span className="text-emerald-400">git</span>{" clone https://github.com/Hundia/EasyDeck.git"}{"\n"}
+        <span className="text-emerald-400">cd</span>{" EasyDeck"}{"\n\n"}
+        <span className="text-zinc-500"># Install dependencies</span>{"\n"}
+        <span className="text-emerald-400">npm</span>{" install"}{"\n\n"}
+        <span className="text-zinc-500"># Start the dev server</span>{"\n"}
+        <span className="text-emerald-400">npm</span>{" run dev"}
+      </>
+    ),
+  },
+  {
+    number: "02",
+    title: "Prepare your frames",
+    summary: "Supply an image sequence — one JPG/PNG per frame, named consistently.",
+    tip: "Frames live in /public. The pattern string uses {n} as the frame index placeholder.",
+    code: (
+      <>
+        <span className="text-zinc-500">{"// Place frames in /public/frames/"}</span>{"\n"}
+        <span className="text-zinc-500">{"// e.g. frame_001.jpg … frame_120.jpg"}</span>{"\n\n"}
+        <span className="text-zinc-500">{"// Reference them in your scene config:"}</span>{"\n"}
+        {"imageSequence: {"}{"\n"}
+        {"  "}<span className="text-sky-300">pattern</span>{":    "}<span className="text-amber-300">&apos;/frames/frame_{"{n}"}.jpg&apos;</span>{","}{"\n"}
+        {"  "}<span className="text-sky-300">frameCount</span>{": "}<span className="text-orange-400">120</span>{","}{"\n"}
+        {"}"}
+      </>
+    ),
+  },
+  {
+    number: "03",
+    title: "Define your story",
+    summary: "Use the agent pipeline for a brief-to-story workflow, or author the schema directly.",
+    tip: "Section mode enforces frame continuity — scene[i].endFrame must equal scene[i+1].startFrame. SceneComposer validates this automatically.",
+    code: (
+      <>
+        <span className="text-violet-400">import</span>{" { createPresentation } "}<span className="text-violet-400">from</span>{" "}<span className="text-amber-300">&apos;@/lib/pipeline&apos;</span>{"\n\n"}
+        <span className="text-zinc-500">{"// Describe your story in plain terms"}</span>{"\n"}
+        <span className="text-violet-400">const</span>{" { story } = "}<span className="text-emerald-400">createPresentation</span>{"({"}{"\n"}
+        {"  "}<span className="text-sky-300">title</span>{":  "}<span className="text-amber-300">&apos;Product Launch&apos;</span>{","}{"\n"}
+        {"  "}<span className="text-sky-300">mode</span>{":   "}<span className="text-amber-300">&apos;section&apos;</span>{",  "}<span className="text-zinc-500">{"// 'snap' | 'scrub'"}</span>{"\n"}
+        {"  "}<span className="text-sky-300">scenes</span>{": ["}{"\n"}
+        {"    { "}<span className="text-sky-300">id</span>{": "}<span className="text-amber-300">&apos;intro&apos;</span>{",   "}<span className="text-sky-300">label</span>{": "}<span className="text-amber-300">&apos;Opening&apos;</span>{",  "}<span className="text-sky-300">frames</span>{": ["}<span className="text-orange-400">0</span>{", "}<span className="text-orange-400">45</span>{"] },"}{"\n"}
+        {"    { "}<span className="text-sky-300">id</span>{": "}<span className="text-amber-300">&apos;feature&apos;</span>{", "}<span className="text-sky-300">label</span>{": "}<span className="text-amber-300">&apos;Key Feature&apos;</span>{", "}<span className="text-sky-300">frames</span>{": ["}<span className="text-orange-400">45</span>{", "}<span className="text-orange-400">90</span>{"] },"}{"\n"}
+        {"  ],"}{"\n"}
+        {"})"}{"\n\n"}
+        <span className="text-zinc-500">{"// story is a fully-validated StorySchema"}</span>
+      </>
+    ),
+  },
+  {
+    number: "04",
+    title: "Render with Stage",
+    summary: "Drop <Stage> into any full-viewport page. It handles mode routing, canvas, Lenis, and a11y.",
+    tip: "Stage needs a full-viewport parent. Wrap it in a div with w-screen h-screen or use the app router layout.",
+    code: (
+      <>
+        <span className="text-violet-400">import</span>{" { Stage } "}<span className="text-violet-400">from</span>{" "}<span className="text-amber-300">&apos;@/components/Stage&apos;</span>{"\n\n"}
+        <span className="text-violet-400">export default function</span>{" "}<span className="text-emerald-400">Presentation</span>{"() {"}{"\n"}
+        {"  "}<span className="text-violet-400">return</span>{" ("}{"\n"}
+        {"    <"}<span className="text-emerald-400">div</span>{" "}<span className="text-sky-300">className</span>{"="}<span className="text-amber-300">&quot;w-screen h-screen&quot;</span>{">"}{"\n"}
+        {"      <"}<span className="text-emerald-400">Stage</span>{" "}<span className="text-sky-300">story</span>{"={story} />"}{"\n"}
+        {"    </"}<span className="text-emerald-400">div</span>{">"}{"\n"}
+        {"  )"}{"\n"}
+        {"}"}
+      </>
+    ),
+  },
+  {
+    number: "05",
+    title: "Customize & extend",
+    summary: "Tune transition behaviour, accessibility fallbacks, and per-scene overrides.",
+    tip: "reducedMotionFallback: 'scrub-instant' collapses all durations to ~0ms and switches to a scrub-style fallback — no motion, full content.",
+    code: (
+      <>
+        <span className="text-zinc-500">{"// Transition knobs on StorySchema"}</span>{"\n"}
+        {"transition: {"}{"\n"}
+        {"  "}<span className="text-sky-300">mode</span>{":             "}<span className="text-amber-300">&apos;section&apos;</span>{","}{"\n"}
+        {"  "}<span className="text-sky-300">duration</span>{":         "}<span className="text-orange-400">0.6</span>{","}{"\n"}
+        {"  "}<span className="text-sky-300">ease</span>{":             "}<span className="text-amber-300">&apos;power2.inOut&apos;</span>{","}{"\n"}
+        {"  "}<span className="text-sky-300">showPagination</span>{":   "}<span className="text-orange-400">true</span>{","}{"\n"}
+        {"  "}<span className="text-sky-300">enableKeyboard</span>{":   "}<span className="text-orange-400">true</span>{","}{"\n"}
+        {"  "}<span className="text-sky-300">wrapEnabled</span>{":      "}<span className="text-orange-400">false</span>{","}{"\n"}
+        {"},"}{"\n\n"}
+        <span className="text-zinc-500">{"// Reduced-motion fallback"}</span>{"\n"}
+        <span className="text-sky-300">reducedMotionFallback</span>{": "}<span className="text-amber-300">&apos;scrub-instant&apos;</span>{","}
+      </>
+    ),
+  },
+] as const;
+
+function GettingStartedSection() {
+  const [active, setActive] = useState(0);
+  const step = STEPS[active];
+
+  return (
+    <section id="start-building" className="py-32 px-6">
+      <div className="max-w-5xl mx-auto">
+        <FadeUp className="text-center mb-16">
+          <p className="text-emerald-400 font-mono text-[11px] tracking-[0.18em] uppercase mb-3">
+            Quick Start
+          </p>
+          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-4 tracking-tight">
+            Start building
+          </h2>
+          <p className="text-zinc-400 text-lg max-w-lg mx-auto leading-relaxed">
+            Five steps from zero to a scrollytelling presentation in your browser.
+          </p>
+        </FadeUp>
+
+        <FadeUp delay={0.1}>
+          <div className="rounded-2xl bg-white/[0.02] border border-white/[0.07] overflow-hidden">
+            <div className="flex flex-col md:flex-row min-h-[480px]">
+
+              {/* Step sidebar */}
+              <div className="md:w-56 shrink-0 border-b md:border-b-0 md:border-r border-white/[0.07] p-3 flex md:flex-col gap-1">
+                {STEPS.map((s, i) => {
+                  const isActive = active === i;
+                  const isDone = i < active;
+                  return (
+                    <button
+                      key={s.number}
+                      onClick={() => setActive(i)}
+                      className={`relative w-full text-left px-3 py-3 rounded-xl transition-colors duration-150 cursor-pointer group ${
+                        isActive
+                          ? "bg-white/[0.07]"
+                          : "hover:bg-white/[0.04]"
+                      }`}
+                    >
+                      {isActive && (
+                        <motion.div
+                          layoutId="step-bg"
+                          className="absolute inset-0 rounded-xl bg-white/[0.05]"
+                          transition={{ type: "spring", stiffness: 340, damping: 30 }}
+                        />
+                      )}
+                      <div className="relative flex items-center gap-3 md:gap-2">
+                        {/* Step number / check */}
+                        <div
+                          className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[10px] font-mono font-bold transition-colors duration-200 ${
+                            isDone
+                              ? "bg-emerald-500 text-black"
+                              : isActive
+                              ? "bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/40"
+                              : "bg-zinc-800 text-zinc-500"
+                          }`}
+                        >
+                          {isDone ? (
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                            </svg>
+                          ) : (
+                            s.number
+                          )}
+                        </div>
+                        <span
+                          className={`text-xs font-medium leading-tight hidden md:block transition-colors duration-150 ${
+                            isActive ? "text-white" : isDone ? "text-zinc-400" : "text-zinc-600"
+                          }`}
+                        >
+                          {s.title}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Step content */}
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={active}
+                    initial={{ opacity: 0, x: 18 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -18 }}
+                    transition={{ duration: 0.28, ease: EASE }}
+                    className="flex-1 flex flex-col"
+                  >
+                    {/* Header */}
+                    <div className="px-7 pt-7 pb-5 border-b border-white/[0.06]">
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="text-emerald-500/50 font-mono text-xs">{step.number}</span>
+                        <h3 className="text-white font-semibold text-lg">{step.title}</h3>
+                      </div>
+                      <p className="text-zinc-400 text-sm leading-relaxed">{step.summary}</p>
+                    </div>
+
+                    {/* Code block */}
+                    <div className="flex-1 bg-[#0d1117]">
+                      <div className="flex items-center gap-1.5 px-5 py-3 border-b border-white/[0.05]">
+                        {["#3f3f46","#3f3f46","#3f3f46"].map((c,i) => (
+                          <div key={i} style={{ background: c }} className="w-2 h-2 rounded-full" />
+                        ))}
+                      </div>
+                      <pre className="p-5 text-sm font-mono overflow-x-auto leading-[1.8] text-zinc-300">
+                        <code>{step.code}</code>
+                      </pre>
+                    </div>
+
+                    {/* Tip */}
+                    <div className="px-7 py-4 border-t border-white/[0.06] flex items-start gap-2.5">
+                      <svg className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.355a3.375 3.375 0 01-3 0" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c4.97 0 9 4.03 9 9s-4.03 9-9 9-9-4.03-9-9 4.03-9 9-9z" />
+                      </svg>
+                      <p className="text-zinc-500 text-xs leading-relaxed">{step.tip}</p>
+                    </div>
+
+                    {/* Navigation */}
+                    <div className="px-7 py-4 flex justify-between items-center border-t border-white/[0.06]">
+                      <button
+                        onClick={() => setActive(Math.max(0, active - 1))}
+                        disabled={active === 0}
+                        className="flex items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-150 cursor-pointer"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Previous
+                      </button>
+
+                      <div className="flex gap-1.5">
+                        {STEPS.map((_, i) => (
+                          <button
+                            key={i}
+                            onClick={() => setActive(i)}
+                            className={`w-1.5 h-1.5 rounded-full transition-all duration-200 cursor-pointer ${
+                              i === active
+                                ? "bg-emerald-400 w-4"
+                                : i < active
+                                ? "bg-emerald-600"
+                                : "bg-zinc-700"
+                            }`}
+                          />
+                        ))}
+                      </div>
+
+                      {active < STEPS.length - 1 ? (
+                        <button
+                          onClick={() => setActive(active + 1)}
+                          className="flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 transition-colors duration-150 cursor-pointer"
+                        >
+                          Next step
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                          </svg>
+                        </button>
+                      ) : (
+                        <a
+                          href="https://github.com/Hundia/EasyDeck"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 transition-colors duration-150"
+                        >
+                          View on GitHub
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                          </svg>
+                        </a>
+                      )}
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+            </div>
+          </div>
+        </FadeUp>
+      </div>
+    </section>
+  );
+}
+
 function StatsBar() {
   return (
     <FadeUp>
@@ -990,6 +1276,7 @@ export default function Home() {
       <ModesSection />
       <PipelineSection />
       <FeaturesSection />
+      <GettingStartedSection />
       <StatsBar />
       <FinalCTA />
       <Footer />

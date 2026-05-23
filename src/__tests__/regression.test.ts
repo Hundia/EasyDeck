@@ -85,4 +85,35 @@ describe("Regression Suite", () => {
     });
   });
 
+  describe("Sprint 7 - Accessibility & UX Polish", () => {
+    it("imports sprint-7 reduced motion tests successfully", async () => {
+      const mod = await import("./unit/sprint-7/use-reduced-motion.test");
+      expect(mod).toBeDefined();
+    });
+    it("imports sprint-7 touch tolerance tests successfully", async () => {
+      const mod = await import("./unit/sprint-7/use-touch-tolerance.test");
+      expect(mod).toBeDefined();
+    });
+    it("imports sprint-7 hash navigation tests successfully", async () => {
+      const mod = await import("./unit/sprint-7/use-hash-navigation.test");
+      expect(mod).toBeDefined();
+    });
+    it("imports sprint-7 semantic layer tests successfully", async () => {
+      const mod = await import("./unit/sprint-7/semantic-layer.test");
+      expect(mod).toBeDefined();
+    });
+    it("imports sprint-7 skip link tests successfully", async () => {
+      const mod = await import("./unit/sprint-7/skip-to-content.test");
+      expect(mod).toBeDefined();
+    });
+    it("imports sprint-7 progress bar tests successfully", async () => {
+      const mod = await import("./unit/sprint-7/progress-bar.test");
+      expect(mod).toBeDefined();
+    });
+    it("imports sprint-7 integration tests successfully", async () => {
+      const mod = await import("./integration/sprint-7/keyboard-nav-flow.test");
+      expect(mod).toBeDefined();
+    });
+  });
+
 });

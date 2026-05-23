@@ -1,6 +1,9 @@
 export { ImageSequenceCanvas, type ImageSequenceCanvasProps } from "./ImageSequenceCanvas";
 export { Pagination, type PaginationProps } from "./Pagination";
-export { SectionStage, type SectionStageProps } from "./SectionStage";
-export { SnapStage, type SnapStageProps } from "./SnapStage";
+export { ProgressBar, type ProgressBarProps } from "./ProgressBar";
 export { ScrubStage, type ScrubStageProps } from "./ScrubStage";
+export { SectionStage, type SectionStageProps } from "./SectionStage";
+export { SemanticLayer, type SemanticLayerProps } from "./SemanticLayer";
+export { SkipToContent, type SkipToContentProps } from "./SkipToContent";
+export { SnapStage, type SnapStageProps } from "./SnapStage";
 export { Stage, type StageProps } from "./Stage";

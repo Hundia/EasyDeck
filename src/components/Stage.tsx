@@ -1,9 +1,14 @@
 "use client";
+
+import { useState } from "react";
+import { ProgressBar } from "@/components/ProgressBar";
+import { ScrubStage } from "@/components/ScrubStage";
+import { SectionStage } from "@/components/SectionStage";
+import { SemanticLayer } from "@/components/SemanticLayer";
+import { SkipToContent } from "@/components/SkipToContent";
+import { SnapStage } from "@/components/SnapStage";
 import type { StorySchema } from "@/lib/schemas/story";
 import { resolveTransitionMode } from "@/lib/stage/resolveTransitionMode";
-import { SectionStage } from "@/components/SectionStage";
-import { SnapStage } from "@/components/SnapStage";
-import { ScrubStage } from "@/components/ScrubStage";
 
 export interface StageProps {
   story: StorySchema;
@@ -11,14 +16,20 @@ export interface StageProps {
 
 export function Stage({ story }: StageProps) {
   const mode = resolveTransitionMode(story);
+  const [currentIndex] = useState(0);
+  const progress = story.scenes.length > 1 ? currentIndex / (story.scenes.length - 1) : 0;
 
-  switch (mode) {
-    case "snap":
-      return <SnapStage story={story} />;
-    case "scrub":
-      return <ScrubStage story={story} />;
-    case "section":
-    default:
-      return <SectionStage story={story} />;
-  }
+  return (
+    <>
+      <SkipToContent targetId="main-stage" />
+      <div id="main-stage">
+        {mode === "snap" && <SnapStage story={story} />}
+        {mode === "scrub" && <ScrubStage story={story} />}
+        {mode === "section" && <SectionStage story={story} />}
+        {!(["snap", "scrub", "section"] as const).includes(mode) && <SectionStage story={story} />}
+      </div>
+      <SemanticLayer scenes={story.scenes} currentIndex={currentIndex} />
+      <ProgressBar progress={progress} sceneCount={story.scenes.length} currentIndex={currentIndex} />
+    </>
+  );
 }

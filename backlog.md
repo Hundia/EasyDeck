@@ -232,6 +232,34 @@ Build a production-ready scrollytelling presentation engine that delivers Apple-
 
 ---
 
+## Sprint 10: Framework Viewer & Documentation App
+**Goal**: Build a web-based viewer app that visualizes everything we developed — architecture, flows, docs, sprint history — with top-tier visual presentation.
+**Estimated complexity**: Medium-High | **Agent**: Sonnet 4.6
+
+### Tasks
+1. Create `/viewer` Next.js route group with dedicated layout
+2. Dashboard landing page — high-level architecture diagram (interactive SVG/canvas)
+3. Docs viewer — render all `docs/*.md` files with syntax highlighting and diagrams
+4. Architecture visualization — component tree, data flow arrows, mode routing (animated)
+5. User experience flow diagram — gesture → Observer/ScrollTrigger → playhead → canvas pipeline
+6. Sprint timeline — visual timeline showing sprint progression, test counts, files added
+7. Mode comparison view — side-by-side visualization of section/snap/scrub behaviors
+8. Lenis integration diagram — shows pause/resume/sync per mode
+9. Schema explorer — interactive Zod schema visualization with valid/invalid examples
+10. Navigation: sidebar with sections (Architecture, Flows, Docs, Sprints, Schemas)
+11. Responsive design with dark theme
+12. Mermaid/D2 diagram rendering for architecture flows
+
+### Acceptance Criteria
+- All docs/*.md files rendered with proper formatting
+- Architecture diagrams are interactive (hover for details, click to navigate)
+- User flow clearly shows: input → processing → output for each mode
+- Sprint timeline shows progression from Sprint 0 to current
+- Accessible (keyboard navigable, screen reader friendly)
+- Visually polished — uses the framework's own scrollytelling for docs navigation
+
+---
+
 ## Backlog (Future)
 - Theme system (dark/light/custom)
 - Multi-canvas support (split-screen presentations)

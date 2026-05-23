@@ -607,7 +607,7 @@ function PipelineSection() {
   }, [inView]);
 
   return (
-    <section className="py-32 px-6">
+    <section id="architecture" className="py-32 px-6">
       <div className="max-w-5xl mx-auto">
         <FadeUp className="text-center mb-16">
           <p className="text-emerald-400 font-mono text-[11px] tracking-[0.18em] uppercase mb-3">

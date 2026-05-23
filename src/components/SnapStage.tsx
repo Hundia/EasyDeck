@@ -5,6 +5,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ImageSequenceCanvas } from "./ImageSequenceCanvas";
 import { Pagination } from "./Pagination";
 import { usePlayhead } from "@/lib/hooks/usePlayhead";
+import { useLenisScrollTriggerSync } from "@/lib/lenis/useLenisScrollTriggerSync";
 import type { StorySchema } from "@/lib/schemas/story";
 import { buildSnapConfig } from "@/lib/snap/buildSnapConfig";
 
@@ -21,6 +22,8 @@ export function SnapStage({ story }: SnapStageProps) {
   const playhead = usePlayhead(scenes[0].startFrame);
   const [currentIndex, setCurrentIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useLenisScrollTriggerSync();
   const overlayRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {

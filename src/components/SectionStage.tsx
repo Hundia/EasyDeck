@@ -5,6 +5,7 @@ import { Observer } from "gsap/Observer";
 import { ImageSequenceCanvas } from "./ImageSequenceCanvas";
 import { Pagination } from "./Pagination";
 import { usePlayhead } from "@/lib/hooks/usePlayhead";
+import { useLenisPause } from "@/lib/lenis/useLenisPause";
 import { computeNextIndex } from "@/lib/section/gotoScene";
 import type { StorySchema } from "@/lib/schemas/story";
 
@@ -21,6 +22,8 @@ export function SectionStage({ story }: SectionStageProps) {
 
   const playhead = usePlayhead(scenes[0].startFrame);
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  useLenisPause();
   // Ref copy so callbacks never capture stale closures
   const currentIndexRef = useRef(0);
   const animating = useRef(false);

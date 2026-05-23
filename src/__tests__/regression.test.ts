@@ -66,4 +66,23 @@ describe("Regression Suite", () => {
     });
   });
 
+  describe("Sprint 6 - Lenis Integration & Smoothing", () => {
+    it("imports sprint-6 init lenis tests successfully", async () => {
+      const mod = await import("./unit/sprint-6/init-lenis.test");
+      expect(mod).toBeDefined();
+    });
+    it("imports sprint-6 provider tests successfully", async () => {
+      const mod = await import("./unit/sprint-6/lenis-provider.test");
+      expect(mod).toBeDefined();
+    });
+    it("imports sprint-6 pause hook tests successfully", async () => {
+      const mod = await import("./unit/sprint-6/use-lenis-pause.test");
+      expect(mod).toBeDefined();
+    });
+    it("imports sprint-6 integration tests successfully", async () => {
+      const mod = await import("./integration/sprint-6/lenis-section-mode.test");
+      expect(mod).toBeDefined();
+    });
+  });
+
 });

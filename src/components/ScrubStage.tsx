@@ -5,6 +5,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ImageSequenceCanvas } from "./ImageSequenceCanvas";
 import { Pagination } from "./Pagination";
 import { usePlayhead } from "@/lib/hooks/usePlayhead";
+import { useLenisScrollTriggerSync } from "@/lib/lenis/useLenisScrollTriggerSync";
 import type { StorySchema } from "@/lib/schemas/story";
 
 if (typeof window !== "undefined") {
@@ -24,6 +25,8 @@ export function ScrubStage({ story }: ScrubStageProps) {
     ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
     : false;
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useLenisScrollTriggerSync();
   const overlayRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {

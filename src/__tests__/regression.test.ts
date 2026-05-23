@@ -116,4 +116,27 @@ describe("Regression Suite", () => {
     });
   });
 
+  describe("Sprint 8 - Agent Pipeline", () => {
+    it("imports sprint-8 content brief schema tests successfully", async () => {
+      const mod = await import("./unit/sprint-8/content-brief-schema.test");
+      expect(mod).toBeDefined();
+    });
+    it("imports sprint-8 narrative designer tests successfully", async () => {
+      const mod = await import("./unit/sprint-8/narrative-designer.test");
+      expect(mod).toBeDefined();
+    });
+    it("imports sprint-8 scene composer tests successfully", async () => {
+      const mod = await import("./unit/sprint-8/scene-composer.test");
+      expect(mod).toBeDefined();
+    });
+    it("imports sprint-8 pipeline orchestrator tests successfully", async () => {
+      const mod = await import("./unit/sprint-8/pipeline.test");
+      expect(mod).toBeDefined();
+    });
+    it("imports sprint-8 integration tests successfully", async () => {
+      const mod = await import("./integration/sprint-8/pipeline-to-stage.test");
+      expect(mod).toBeDefined();
+    });
+  });
+
 });

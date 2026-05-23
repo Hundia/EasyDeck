@@ -4,5 +4,5 @@ export { designNarrative } from "./narrativeDesigner";
 export type { NarrativeOutput, NarrativeScene } from "./narrativeDesigner";
 export { composeStory } from "./sceneComposer";
 export type { ComposerLog } from "./sceneComposer";
-export { createPresentation } from "./pipeline";
+export { createPresentation, createEnhancedPresentation } from "./pipeline";
 export type { PipelineResult } from "./pipeline";

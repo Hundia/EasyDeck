@@ -260,6 +260,34 @@ Build a production-ready scrollytelling presentation engine that delivers Apple-
 
 ---
 
+## Sprint 11: Agent Vendor Abstraction — Multi-Provider Support ✅
+**Goal**: Make the agent pipeline vendor-agnostic with a unified LLM provider interface supporting GitHub Copilot, Claude (Anthropic), and Gemini (Google). Allow presentations to be AI-enhanced regardless of which provider the user has access to.
+**Estimated complexity**: Medium-High | **Agent**: Sonnet 4.6
+
+### Tasks
+1. Define `LLMProvider` interface and `ProviderConfig` schema — abstract contract for any AI provider
+2. Implement `CopilotProvider` — GitHub Copilot / OpenAI-compatible completions adapter
+3. Implement `ClaudeProvider` — Anthropic Messages API adapter
+4. Implement `GeminiProvider` — Google Generative AI adapter
+5. Create `ProviderRegistry` — factory for provider instantiation from config
+6. Create `AIEnhancer` — optional pipeline stage that enriches narratives via LLM (scene descriptions, timing suggestions, content polish)
+7. Integrate `AIEnhancer` into `createPresentation` pipeline as an optional step (backwards compatible — works without any provider configured)
+8. Configuration system — `easydeck.config.ts` for provider selection, API keys via env vars
+9. Provider health check and graceful fallback (if AI unavailable, use deterministic path)
+10. Unit tests for all providers (mocked) + integration test for pipeline with/without AI
+11. Documentation: `docs/integration/ai-providers.md`
+
+### Acceptance Criteria
+- Pipeline still works with ZERO providers configured (deterministic mode, no breaking changes)
+- Each provider implements the same interface and is hot-swappable
+- Provider selection via config or environment variable (`EASYDECK_AI_PROVIDER=claude`)
+- API keys via standard env vars (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_AI_KEY`)
+- AIEnhancer produces richer narrative output (better scene descriptions, timing rationale)
+- Type-safe throughout — no `any` types
+- All existing tests still pass (regression)
+
+---
+
 ## Backlog (Future)
 - Theme system (dark/light/custom)
 - Multi-canvas support (split-screen presentations)

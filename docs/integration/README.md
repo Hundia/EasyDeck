@@ -51,10 +51,19 @@ Every integration should preserve the separation between:
 - canvas rendering,
 - semantic accessibility layer.
 
+### AI Providers
+
+- vendor-agnostic LLM abstraction supporting Copilot, Claude, and Gemini,
+- optional AI enhancement for narrative enrichment (descriptions, rationale, timing),
+- graceful fallback to deterministic mode if no provider is configured or available.
+
+See [AI Providers](ai-providers.md).
+
 ## Recommended reading order
 
 1. [Design System](../design/README.md)
 2. [GSAP Integration](gsap.md)
 3. [Lenis Integration](lenis.md)
-4. [Transition Modes](../architecture/transition-modes.md)
-5. [Schema Overview](../schemas/README.md)
+4. [AI Providers](ai-providers.md)
+5. [Transition Modes](../architecture/transition-modes.md)
+6. [Schema Overview](../schemas/README.md)

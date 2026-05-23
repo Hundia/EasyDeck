@@ -35,4 +35,20 @@ describe("Regression Suite", () => {
       expect(mod).toBeDefined();
     });
   });
+
+  describe("Sprint 4 - Snap Mode", () => {
+    it("imports sprint-4 unit tests successfully", async () => {
+      const mod = await import("./unit/sprint-4/snap-mode.test");
+      expect(mod).toBeDefined();
+    });
+    it("imports sprint-4 component tests successfully", async () => {
+      const mod = await import("./unit/sprint-4/snap-stage.test");
+      expect(mod).toBeDefined();
+    });
+    it("imports sprint-4 integration tests successfully", async () => {
+      const mod = await import("./integration/sprint-4/snap-stage-scroll.test");
+      expect(mod).toBeDefined();
+    });
+  });
+
 });

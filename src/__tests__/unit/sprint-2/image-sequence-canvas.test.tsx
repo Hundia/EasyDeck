@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, cleanup } from "@testing-library/react";
+import { render, cleanup, waitFor } from "@testing-library/react";
 import React, { useRef } from "react";
 import { ImageSequenceCanvas } from "@/components/ImageSequenceCanvas";
 import type { Playhead } from "@/lib/types/playhead";
@@ -78,10 +78,10 @@ describe("ImageSequenceCanvas", () => {
     const onProgress = vi.fn();
     render(<TestWrapper frameCount={3} onProgress={onProgress} />);
 
-    // Wait for async image loads to complete
-    await new Promise((r) => setTimeout(r, 50));
+    await waitFor(() => {
+      expect(onProgress).toHaveBeenCalled();
+    });
 
-    expect(onProgress).toHaveBeenCalled();
     const lastCall = onProgress.mock.calls[onProgress.mock.calls.length - 1];
     expect(lastCall[0]).toBe(1);
   });

@@ -1,6 +1,6 @@
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black text-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black text-white">
       {/* Hero */}
       <section className="flex flex-col items-center justify-center min-h-screen px-6 text-center">
         <div className="mb-6 text-sm font-mono tracking-wider text-emerald-400 uppercase">
@@ -139,7 +139,7 @@ export default function Home() {
           methodology • MIT License
         </p>
       </footer>
-    </main>
+    </div>
   );
 }
 

@@ -139,4 +139,23 @@ describe("Regression Suite", () => {
     });
   });
 
+  describe("Sprint 9 - Integration Testing & QA", () => {
+    it("imports sprint-9 full pipeline render tests successfully", async () => {
+      const mod = await import("./integration/sprint-9/full-pipeline-render.test");
+      expect(mod).toBeDefined();
+    });
+    it("imports sprint-9 memory cleanup tests successfully", async () => {
+      const mod = await import("./integration/sprint-9/memory-cleanup.test");
+      expect(mod).toBeDefined();
+    });
+    it("imports sprint-9 fps monitor tests successfully", async () => {
+      const mod = await import("./unit/sprint-9/fps-monitor.test");
+      expect(mod).toBeDefined();
+    });
+    it("imports sprint-9 memory monitor tests successfully", async () => {
+      const mod = await import("./unit/sprint-9/memory-monitor.test");
+      expect(mod).toBeDefined();
+    });
+  });
+
 });

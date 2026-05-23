@@ -51,4 +51,19 @@ describe("Regression Suite", () => {
     });
   });
 
+  describe("Sprint 5 - Scrub Mode & Stage Switcher", () => {
+    it("imports sprint-5 scrub stage tests successfully", async () => {
+      const mod = await import("./unit/sprint-5/scrub-stage.test");
+      expect(mod).toBeDefined();
+    });
+    it("imports sprint-5 stage switcher tests successfully", async () => {
+      const mod = await import("./unit/sprint-5/stage-switcher.test");
+      expect(mod).toBeDefined();
+    });
+    it("imports sprint-5 integration tests successfully", async () => {
+      const mod = await import("./integration/sprint-5/scrub-continuous.test");
+      expect(mod).toBeDefined();
+    });
+  });
+
 });

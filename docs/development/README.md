@@ -33,9 +33,15 @@ Prefer catching invalid stories before the stage renders.
 
 Keyboard behavior, reduced-motion behavior, and semantic fallback content should be validated alongside the motion system, not after it.
 
+### Design skills
+
+The installed design skills should guide implementation choices before engineers introduce one-off styling or motion.
+Use `ckm-design` and `ckm-brand` for story-level direction, `ckm-design-system` for token structure, `ckm-ui-styling` for stage chrome, `ckm-slides` and `ckm-banner-design` for scene composition, `data-visualization` for chart-heavy scenes, and `gsap`, `gsap-framer-scroll-animation`, and `nextjs` for implementation constraints.
+
 ## Team responsibilities
 
 - Designers define narrative intent and review scene segmentation.
+- Designers should reference the installed design skills when specifying hierarchy, tokens, brand rules, and hero treatments.
 - Agent workflows produce structured draft stories and rationale.
 - Engineers implement stages, canvas behavior, and integration hooks.
 - QA validates keyboard, touch, reduced motion, and device-specific behavior.
@@ -54,5 +60,6 @@ Before shipping a story implementation, confirm:
 
 - [Sprint Workflow](sprint-workflow.md)
 - [Agent Orchestration](agent-orchestration.md)
+- [Design System Overview](../design/README.md)
 - [Accessibility Guidelines](../accessibility/README.md)
 - [Transition Modes](../architecture/transition-modes.md)

@@ -46,6 +46,14 @@ Read more: [Image Sequence Pipeline](image-sequence-pipeline.md).
 
 Read more: [Schema Overview](../schemas/README.md).
 
+### Design system
+
+- Defines token architecture from primitives to semantic and component tokens.
+- Sets visual hierarchy rules for scene composition, hero treatments, and UI chrome.
+- Establishes animation patterns that align GSAP motion with presentation intent.
+
+Read more: [Design System Overview](../design/README.md).
+
 ### Accessibility layer
 
 - Keyboard navigation is mandatory for section-style stages.

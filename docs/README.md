@@ -49,6 +49,12 @@ The framework combines GSAP, Lenis, canvas image-sequence playback, Zod validati
 - [Keyboard Navigation](accessibility/keyboard-navigation.md)
 - [Reduced Motion](accessibility/reduced-motion.md)
 
+### Design System
+
+- [Design System Overview](design/README.md)
+- [Animation Patterns](design/animation-patterns.md)
+- [Scene Composition](design/scene-composition.md)
+
 ### Integration
 
 - [Integration Guides](integration/README.md)

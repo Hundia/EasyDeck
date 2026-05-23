@@ -33,6 +33,15 @@ See [Lenis Integration](lenis.md).
 - resolve scene-level transition overrides over story defaults,
 - keep runtime logic driven by validated config, not ad hoc assumptions.
 
+### Design system
+
+- use `ckm-design-system` token layers to map primitives to semantic roles and, only when needed, component-level tokens,
+- expose semantic tokens through Tailwind theme keys and mirror scene-sensitive values as CSS variables,
+- use the installed design skills as the source of truth for hierarchy, hero treatments, brand usage, and chart styling,
+- keep Tailwind utilities aligned with token names so implementation matches authored design guidance.
+
+See [Design System Overview](../design/README.md).
+
 ## Common integration rule
 
 Every integration should preserve the separation between:
@@ -44,7 +53,8 @@ Every integration should preserve the separation between:
 
 ## Recommended reading order
 
-1. [GSAP Integration](gsap.md)
-2. [Lenis Integration](lenis.md)
-3. [Transition Modes](../architecture/transition-modes.md)
-4. [Schema Overview](../schemas/README.md)
+1. [Design System](../design/README.md)
+2. [GSAP Integration](gsap.md)
+3. [Lenis Integration](lenis.md)
+4. [Transition Modes](../architecture/transition-modes.md)
+5. [Schema Overview](../schemas/README.md)

@@ -2,6 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes bento-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+@keyframes bento-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+@keyframes bento-tilt {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+@keyframes bento-drift {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(4px, -4px); }
+}
+@keyframes bento-glow {
+  0%, 100% { opacity: 0.7; filter: drop-shadow(0 0 0 transparent); }
+  50% { opacity: 1; filter: drop-shadow(0 0 5px rgba(52,211,153,0.5)); }
+}
+
 @keyframes blob-drift-a {
   0%, 100% { transform: translate(0, 0) scale(1); }
   33%       { transform: translate(3%, 6%) scale(1.06); }

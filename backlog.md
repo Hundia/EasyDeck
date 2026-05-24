@@ -296,3 +296,18 @@ Build a production-ready scrollytelling presentation engine that delivers Apple-
 - CMS integration (Sanity/Contentful)
 - Analytics hooks (scene-entered events)
 - RTL language support
+
+---
+
+## Sprint 12: Multi-Agent Chat Support — Copilot, Claude, Gemini ✅
+**Goal**: Make the framework usable from any AI coding chat (Copilot, Claude, Gemini) with platform-specific instructions and a shared presentation creation workflow.
+**Estimated complexity**: Low-Medium | **Agent**: Sonnet 4.6
+
+### Tasks
+1. Create AGENTS.md — universal agent guide with full workflow
+2. Create .github/copilot-instructions.md
+3. Create .gemini/styleguide.md
+4. Update CLAUDE.md to reference AGENTS.md
+5. Create docs/guides/creating-presentations.md
+6. Update docs viewer
+7. Validation tests (8 passing)

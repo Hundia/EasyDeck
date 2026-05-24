@@ -60,6 +60,11 @@ The framework combines GSAP, Lenis, canvas image-sequence playback, Zod validati
 - [Integration Guides](integration/README.md)
 - [Lenis Integration](integration/lenis.md)
 - [GSAP Integration](integration/gsap.md)
+- [AI Providers](integration/ai-providers.md)
+
+### Guides
+
+- [Creating Presentations](guides/creating-presentations.md)
 
 ### Development
 

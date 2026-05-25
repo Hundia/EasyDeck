@@ -1,14 +1,19 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { AnimatePresence, motion, useAnimation } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import "./styles.css";
 
-/* ─── Scene Data ─────────────────────────────────────────────────── */
+/* ─── Types ───────────────────────────────────────────────────────── */
+
+type ScrollMode = "section" | "continuous" | "autoplay";
+type Language = "both" | "en" | "he";
+type PanelPosition = "bottom-left" | "bottom-right" | "bottom-center" | "top-left" | "top-right";
 
 interface Scene {
   id: number;
   part: string;
+  partHe: string;
   titleEn: string;
   titleHe: string;
   descriptionEn: string;
@@ -17,12 +22,16 @@ interface Scene {
   accentColor: string;
   hudLabel: string;
   dataLine?: string;
+  panelPosition: PanelPosition;
 }
+
+/* ─── Scene Data ──────────────────────────────────────────────────── */
 
 const scenes: Scene[] = [
   {
     id: 1,
     part: "PART 1 — THE THREAT",
+    partHe: "חלק 1 — האיום",
     titleEn: "THE APPROACHING THREAT",
     titleHe: "האיום המתקרב",
     descriptionEn:
@@ -33,10 +42,12 @@ const scenes: Scene[] = [
     accentColor: "#FFB830",
     hudLabel: "SCENE 01 // INFILTRATION DETECTED",
     dataLine: "COORD: 31.2588° N, 34.7997° E | THREAT: UNIDENTIFIED",
+    panelPosition: "bottom-right",
   },
   {
     id: 2,
     part: "PART 2 — THE ALERT",
+    partHe: "חלק 2 — ההתרעה",
     titleEn: "THE COMMAND CENTER AWAKENS",
     titleHe: "חדר המצב מתעורר",
     descriptionEn:
@@ -47,10 +58,12 @@ const scenes: Scene[] = [
     accentColor: "#00D4FF",
     hudLabel: "SCENE 02 // ALERT TRIGGERED",
     dataLine: "STATUS: C4I ACTIVE | THREAT LEVEL: ELEVATED",
+    panelPosition: "bottom-left",
   },
   {
     id: 3,
-    part: "PART 3 — INTELLIGENCE ANALYSIS",
+    part: "PART 3 — INTELLIGENCE",
+    partHe: "חלק 3 — מודיעין",
     titleEn: "INTEL RESEARCH SOFTWARE",
     titleHe: "תוכנת מחקר מודיעיני",
     descriptionEn:
@@ -61,10 +74,12 @@ const scenes: Scene[] = [
     accentColor: "#00D4FF",
     hudLabel: "SCENE 03 // ANALYSIS ACTIVE",
     dataLine: "MATCH CONFIDENCE: 87.3% | DATABASES: 14 CROSS-REFERENCED",
+    panelPosition: "bottom-left",
   },
   {
     id: 4,
-    part: "PART 4 — DEPLOYING ASSETS",
+    part: "PART 4 — DEPLOYMENT",
+    partHe: "חלק 4 — שיגור",
     titleEn: "DRONES DISPATCHED",
     titleHe: "כטב״מים ממריאים",
     descriptionEn:
@@ -75,10 +90,12 @@ const scenes: Scene[] = [
     accentColor: "#00E676",
     hudLabel: "SCENE 04 // ASSETS DEPLOYED",
     dataLine: "EAGLE-1: ALT 2400m | EAGLE-2: ALT 1800m | EAGLE-3: STANDBY",
+    panelPosition: "bottom-right",
   },
   {
     id: 5,
-    part: "PART 5 — CYBER DISRUPTION",
+    part: "PART 5 — CYBER ATTACK",
+    partHe: "חלק 5 — מתקפת סייבר",
     titleEn: "CYBER ATTACK DETECTED",
     titleHe: "מתקפת סייבר זוהתה",
     descriptionEn:
@@ -89,10 +106,12 @@ const scenes: Scene[] = [
     accentColor: "#FF2E3B",
     hudLabel: "SCENE 05 // BREACH DETECTED",
     dataLine: "⚠ COMM LINK SEVERED | VECTOR: RF JAM + NETWORK INTRUSION",
+    panelPosition: "bottom-left",
   },
   {
     id: 6,
-    part: "PART 6 — CYBER DEFENSE",
+    part: "PART 6 — DEFENSE",
+    partHe: "חלק 6 — הגנה",
     titleEn: "DEFENSIVE PLAYBOOK ACTIVATED",
     titleHe: "הפעלת תרחיש הגנתי",
     descriptionEn:
@@ -103,10 +122,12 @@ const scenes: Scene[] = [
     accentColor: "#00E676",
     hudLabel: "SCENE 06 // THREAT MITIGATED",
     dataLine: "PLAYBOOK: COMM-SHIELD ALPHA | EFFICACY: 94.7% | STATUS: RESTORED",
+    panelPosition: "bottom-right",
   },
   {
     id: 7,
     part: "PART 7 — EYES ON TARGET",
+    partHe: "חלק 7 — עיניים על המטרה",
     titleEn: "TARGET ACQUIRED",
     titleHe: "המטרה אותרה",
     descriptionEn:
@@ -117,10 +138,12 @@ const scenes: Scene[] = [
     accentColor: "#00D4FF",
     hudLabel: "SCENE 07 // TRACKING ACTIVE",
     dataLine: "TGT-001 | CONFIDENCE: 96.4% | SPEED: 1.2 m/s | DIST: 3.7km",
+    panelPosition: "bottom-left",
   },
   {
     id: 8,
     part: "PART 8 — THE DECISION",
+    partHe: "חלק 8 — ההחלטה",
     titleEn: "COMMAND DECISION",
     titleHe: "ההחלטה",
     descriptionEn:
@@ -131,10 +154,12 @@ const scenes: Scene[] = [
     accentColor: "#FFB830",
     hudLabel: "SCENE 08 // AUTHORITY CONFIRMED",
     dataLine: "OPERATION AUTHORITY: CONFIRMED | BIOMETRIC: VERIFIED",
+    panelPosition: "bottom-right",
   },
   {
     id: 9,
     part: "PART 9 — CAPTURE",
+    partHe: "חלק 9 — לכידה",
     titleEn: "TARGET SURRENDERS",
     titleHe: "המטרה נכנעת",
     descriptionEn:
@@ -145,10 +170,12 @@ const scenes: Scene[] = [
     accentColor: "#00E676",
     hudLabel: "SCENE 09 // TARGET NEUTRALIZED",
     dataLine: "FORMATION: TRIANGLE | STATUS: SURRENDERED | THREAT: CONTAINED",
+    panelPosition: "bottom-center",
   },
   {
     id: 10,
-    part: "PART 10 — POST-OP ANALYSIS",
+    part: "PART 10 — AI ANALYSIS",
+    partHe: "חלק 10 — ניתוח AI",
     titleEn: "AI INVESTIGATION FRAMEWORK",
     titleHe: "מסגרת חקירת בינה מלאכותית",
     descriptionEn:
@@ -159,10 +186,12 @@ const scenes: Scene[] = [
     accentColor: "#3D7BFF",
     hudLabel: "SCENE 10 // AGENTS ACTIVE",
     dataLine: "AGENTS: 5 ACTIVE | DATA: 2.4TB PROCESSED | ANOMALIES: 3 FLAGGED",
+    panelPosition: "bottom-left",
   },
   {
     id: 11,
-    part: "PART 11 — INVESTIGATION RESULTS",
+    part: "PART 11 — FINDINGS",
+    partHe: "חלק 11 — ממצאים",
     titleEn: "AI FINDINGS DASHBOARD",
     titleHe: "לוח ממצאי הבינה המלאכותית",
     descriptionEn:
@@ -173,10 +202,12 @@ const scenes: Scene[] = [
     accentColor: "#00D4FF",
     hudLabel: "SCENE 11 // FINDINGS COMPLETE",
     dataLine: "THREAT GROUP: VORTEX-7 | CONFIDENCE: 91% | VECTORS: 2 IDENTIFIED",
+    panelPosition: "bottom-right",
   },
   {
     id: 12,
-    part: "PART 12 — OUR PHILOSOPHY",
+    part: "PART 12 — PHILOSOPHY",
+    partHe: "חלק 12 — פילוסופיה",
     titleEn: "SPEC-DRIVEN DEVELOPMENT",
     titleHe: "פיתוח מונחה מפרט",
     descriptionEn:
@@ -187,22 +218,26 @@ const scenes: Scene[] = [
     accentColor: "#FFB830",
     hudLabel: "SCENE 12 // DEVELOPMENT PHILOSOPHY",
     dataLine: "TRACEABILITY | OWNERSHIP | REPRODUCIBILITY | ACCOUNTABILITY",
+    panelPosition: "bottom-center",
   },
   {
     id: 13,
     part: "",
+    partHe: "",
     titleEn: "THANK YOU",
     titleHe: "תודה",
-    descriptionEn: "Intelligence Software Department",
-    descriptionHe: "מחלקת תוכנה מודיעינית",
+    descriptionEn: "Intelligence Software Department — Securing the Future Through Innovation",
+    descriptionHe: "מחלקת תוכנה מודיעינית — מאבטחים את העתיד באמצעות חדשנות",
     image: "/presentations/x_pres/frames/frame-0013.webp",
     accentColor: "#00D4FF",
     hudLabel: "",
     dataLine: "SECURING THE FUTURE THROUGH INNOVATION",
+    panelPosition: "bottom-center",
   },
   {
     id: 14,
     part: "",
+    partHe: "",
     titleEn: "",
     titleHe: "",
     descriptionEn: "",
@@ -210,195 +245,132 @@ const scenes: Scene[] = [
     image: "/presentations/x_pres/frames/frame-0014.webp",
     accentColor: "#00D4FF",
     hudLabel: "",
+    panelPosition: "bottom-center",
   },
 ];
 
-/* ─── Typewriter Hook ─────────────────────────────────────────────── */
+/* ─── Utility: Decode Text Effect ─────────────────────────────────── */
 
-function useTypewriter(text: string, speed: number = 30, trigger: boolean = true) {
-  const [displayed, setDisplayed] = useState("");
-  const [done, setDone] = useState(false);
+function DecodeText({ text, trigger }: { text: string; trigger: number }) {
+  const [displayed, setDisplayed] = useState(text);
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*";
 
   useEffect(() => {
-    if (!trigger) {
-      setDisplayed("");
-      setDone(false);
-      return;
-    }
-    setDisplayed("");
-    setDone(false);
-    let i = 0;
+    let frame = 0;
+    const totalFrames = 20;
     const interval = setInterval(() => {
-      if (i < text.length) {
-        setDisplayed(text.slice(0, i + 1));
-        i++;
-      } else {
-        setDone(true);
-        clearInterval(interval);
-      }
-    }, speed);
+      frame++;
+      const progress = frame / totalFrames;
+      const decoded = text
+        .split("")
+        .map((char, i) => {
+          if (char === " ") return " ";
+          if (i / text.length < progress) return char;
+          return chars[Math.floor(Math.random() * chars.length)];
+        })
+        .join("");
+      setDisplayed(decoded);
+      if (frame >= totalFrames) clearInterval(interval);
+    }, 30);
     return () => clearInterval(interval);
-  }, [text, speed, trigger]);
+  }, [trigger, text]);
 
-  return { displayed, done };
+  return <>{displayed}</>;
 }
 
-/* ─── Animated Data Line ──────────────────────────────────────────── */
+/* ─── Signal Strength Indicator ───────────────────────────────────── */
 
-function DataLine({ text, color, delay = 0.8 }: { text: string; color: string; delay?: number }) {
-  const { displayed } = useTypewriter(text, 20, true);
-
-  return (
-    <motion.div
-      className="x-pres-data-line"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay }}
-      style={{ color }}
-    >
-      <span className="x-pres-data-cursor">▌</span>
-      {displayed}
-    </motion.div>
-  );
-}
-
-/* ─── Animated Scan Line ──────────────────────────────────────────── */
-
-function ScanLines() {
-  return (
-    <div className="x-pres-scanlines" aria-hidden="true">
-      <div className="x-pres-scanline-sweep" />
-    </div>
-  );
-}
-
-/* ─── Particle Field ──────────────────────────────────────────────── */
-
-function ParticleField({ color }: { color: string }) {
-  const particles = useMemo(
-    () =>
-      Array.from({ length: 30 }, (_, i) => ({
-        id: i,
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        size: Math.random() * 2 + 1,
-        duration: Math.random() * 8 + 4,
-        delay: Math.random() * 4,
-      })),
-    []
-  );
+function SignalStrength({ sceneId }: { sceneId: number }) {
+  const getStrength = (id: number) => {
+    if (id === 5) return [3, 2, 0, 0, 0]; // Cyber attack - signal lost
+    if (id === 6) return [8, 6, 5, 3, 2]; // Recovering
+    return [12, 10, 8, 6, 4]; // Full signal
+  };
+  const bars = getStrength(sceneId);
 
   return (
-    <div className="x-pres-particles" aria-hidden="true">
-      {particles.map((p) => (
-        <motion.div
-          key={p.id}
-          className="x-pres-particle"
-          style={{
-            left: `${p.x}%`,
-            top: `${p.y}%`,
-            width: p.size,
-            height: p.size,
-            backgroundColor: color,
-          }}
-          animate={{
-            opacity: [0, 0.8, 0],
-            y: [0, -30, -60],
-            scale: [0.5, 1, 0.3],
-          }}
-          transition={{
-            duration: p.duration,
-            delay: p.delay,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
+    <div className="x-pres-hud-signal">
+      {bars.map((h, i) => (
+        <div
+          key={i}
+          className="x-pres-hud-signal-bar"
+          style={{ height: `${h}px` }}
         />
       ))}
     </div>
   );
 }
 
-/* ─── HUD Corner Brackets ─────────────────────────────────────────── */
-
-function HUDCorners({ color }: { color: string }) {
-  return (
-    <>
-      <motion.div
-        className="x-pres-hud-corner x-pres-hud-tl"
-        style={{ borderColor: `${color}66` }}
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-      />
-      <motion.div
-        className="x-pres-hud-corner x-pres-hud-tr"
-        style={{ borderColor: `${color}66` }}
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-      />
-      <motion.div
-        className="x-pres-hud-corner x-pres-hud-bl"
-        style={{ borderColor: `${color}66` }}
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-      />
-      <motion.div
-        className="x-pres-hud-corner x-pres-hud-br"
-        style={{ borderColor: `${color}66` }}
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
-      />
-    </>
-  );
-}
-
-/* ─── Glitch Text Effect ──────────────────────────────────────────── */
-
-function GlitchText({ text, className }: { text: string; className?: string }) {
-  return (
-    <span className={`x-pres-glitch ${className || ""}`} data-text={text}>
-      {text}
-    </span>
-  );
-}
-
-/* ─── Main Presentation Component ─────────────────────────────────── */
+/* ─── Main Component ──────────────────────────────────────────────── */
 
 export default function XPresPage() {
   const [currentScene, setCurrentScene] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [loadProgress, setLoadProgress] = useState(0);
+  const [scrollMode, setScrollMode] = useState<ScrollMode>("section");
+  const [language, setLanguage] = useState<Language>("both");
   const lastScrollTime = useRef(0);
   const touchStartY = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const autoplayRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [autoplayProgress, setAutoplayProgress] = useState(0);
 
-  // Preload all images with progress
+  // Load language preference from localStorage
+  useEffect(() => {
+    const saved = typeof window !== "undefined" ? localStorage.getItem("x-pres-lang") : null;
+    if (saved === "en" || saved === "he" || saved === "both") setLanguage(saved);
+  }, []);
+
+  // Persist language preference
+  useEffect(() => {
+    if (typeof window !== "undefined") localStorage.setItem("x-pres-lang", language);
+  }, [language]);
+
+  // Preload images
   useEffect(() => {
     let loaded = 0;
     const total = scenes.length;
     scenes.forEach((scene) => {
       const img = new Image();
-      img.onload = () => {
+      const onDone = () => {
         loaded++;
         setLoadProgress(Math.round((loaded / total) * 100));
-        if (loaded === total) setTimeout(() => setImagesLoaded(true), 500);
+        if (loaded === total) setTimeout(() => setImagesLoaded(true), 400);
       };
-      img.onerror = () => {
-        loaded++;
-        setLoadProgress(Math.round((loaded / total) * 100));
-        if (loaded === total) setTimeout(() => setImagesLoaded(true), 500);
-      };
+      img.onload = onDone;
+      img.onerror = onDone;
       img.src = scene.image;
     });
   }, []);
 
+  // Autoplay mode
+  useEffect(() => {
+    if (scrollMode === "autoplay") {
+      setAutoplayProgress(0);
+      const progressInterval = setInterval(() => {
+        setAutoplayProgress((p) => {
+          if (p >= 100) return 0;
+          return p + (100 / 60); // 6 seconds = 60 * 100ms ticks
+        });
+      }, 100);
+      autoplayRef.current = setInterval(() => {
+        setCurrentScene((s) => (s + 1) % scenes.length);
+        setAutoplayProgress(0);
+      }, 6000);
+      return () => {
+        clearInterval(progressInterval);
+        if (autoplayRef.current) clearInterval(autoplayRef.current);
+      };
+    } else {
+      if (autoplayRef.current) clearInterval(autoplayRef.current);
+      setAutoplayProgress(0);
+    }
+  }, [scrollMode]);
+
   const navigate = useCallback(
     (direction: "next" | "prev") => {
-      if (isTransitioning) return;
+      if (isTransitioning || scrollMode === "autoplay") return;
       const now = Date.now();
       if (now - lastScrollTime.current < 700) return;
       lastScrollTime.current = now;
@@ -411,21 +383,15 @@ export default function XPresPage() {
       }
       setTimeout(() => setIsTransitioning(false), 700);
     },
-    [currentScene, isTransitioning]
+    [currentScene, isTransitioning, scrollMode]
   );
 
-  // Lock body scroll
+  // Lock scroll & handle wheel on document
   useEffect(() => {
+    if (scrollMode === "continuous") return;
     document.body.style.overflow = "hidden";
     document.documentElement.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
-      document.documentElement.style.overflow = "";
-    };
-  }, []);
 
-  // Wheel — attached to document to capture all scroll events
-  useEffect(() => {
     const handler = (e: WheelEvent) => {
       e.preventDefault();
       e.stopPropagation();
@@ -434,11 +400,16 @@ export default function XPresPage() {
       }
     };
     document.addEventListener("wheel", handler, { passive: false });
-    return () => { document.removeEventListener("wheel", handler); };
-  }, [navigate]);
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      document.removeEventListener("wheel", handler);
+    };
+  }, [navigate, scrollMode]);
 
-  // Touch — attached to document
+  // Touch navigation
   useEffect(() => {
+    if (scrollMode === "continuous") return;
     const handleTouchStart = (e: TouchEvent) => {
       touchStartY.current = e.touches[0].clientY;
     };
@@ -452,7 +423,7 @@ export default function XPresPage() {
       document.removeEventListener("touchstart", handleTouchStart);
       document.removeEventListener("touchend", handleTouchEnd);
     };
-  }, [navigate]);
+  }, [navigate, scrollMode]);
 
   // Keyboard
   useEffect(() => {
@@ -476,291 +447,317 @@ export default function XPresPage() {
   }, [navigate]);
 
   const scene = scenes[currentScene];
+  const isRTL = language === "he";
   const isThankYou = currentScene >= 12;
 
-  // Loading screen
+  // Determine title/description based on language
+  const title = language === "he" ? scene.titleHe : scene.titleEn;
+  const description = language === "he" ? scene.descriptionHe : scene.descriptionEn;
+  const partLabel = language === "he" ? scene.partHe : scene.part;
+
+  /* ─── Loading Screen ───────────────────────────────────────────── */
   if (!imagesLoaded) {
     return (
-      <div className="x-pres-loader">
-        <div className="x-pres-loader-hud">
-          <div className="x-pres-loader-ring" />
-          <div className="x-pres-loader-text">
-            <GlitchText text="LOADING OPERATIONAL BRIEFING" />
+      <div className="x-pres-container" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{
+            width: 56, height: 56, border: "2px solid rgba(0,212,255,0.15)",
+            borderTopColor: "#00D4FF", borderRadius: "50%",
+            animation: "spin 0.8s linear infinite", margin: "0 auto 24px"
+          }} />
+          <div style={{ fontFamily: "var(--x-pres-font-mono)", fontSize: 11, color: "#00D4FF", letterSpacing: 4 }}>
+            LOADING OPERATIONAL BRIEFING
           </div>
-          <div className="x-pres-loader-progress">
-            <div
-              className="x-pres-loader-bar"
-              style={{ width: `${loadProgress}%` }}
-            />
+          <div style={{ width: 200, height: 2, background: "rgba(0,212,255,0.1)", borderRadius: 1, margin: "16px auto", overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${loadProgress}%`, background: "#00D4FF", transition: "width 0.3s", boxShadow: "0 0 8px #00D4FF" }} />
           </div>
-          <div className="x-pres-loader-percent">{loadProgress}%</div>
+          <div style={{ fontFamily: "var(--x-pres-font-mono)", fontSize: 10, color: "#64748B" }}>{loadProgress}%</div>
         </div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
 
+  /* ─── Main Render ──────────────────────────────────────────────── */
   return (
-    <div ref={containerRef} className="x-pres-container">
-      {/* Scan Lines Overlay */}
-      <ScanLines />
+    <div
+      ref={containerRef}
+      className={`x-pres-container ${scrollMode === "continuous" ? "mode-continuous" : ""}`}
+    >
+      {/* Scanlines */}
+      <div className="x-pres-scanlines" aria-hidden="true" />
 
-      {/* Particle Field */}
-      <ParticleField color={scene.accentColor} />
-
-      {/* Background Image with Ken Burns */}
+      {/* Background */}
       <AnimatePresence mode="sync">
         <motion.div
           key={`bg-${currentScene}`}
-          className="x-pres-bg"
-          initial={{ opacity: 0, scale: 1.1 }}
-          animate={{ opacity: 1, scale: 1.0 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          transition={{ duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-        >
-          <motion.img
-            src={scene.image}
-            alt={scene.titleEn}
-            className="x-pres-bg-img"
-            animate={{ scale: [1, 1.05] }}
-            transition={{ duration: 12, ease: "linear", repeat: Infinity, repeatType: "reverse" }}
-          />
-          <div className="x-pres-bg-overlay" />
-          <div className="x-pres-vignette" />
-        </motion.div>
+          className="x-pres-frame-bg"
+          style={{ backgroundImage: `url(${scene.image})` }}
+          initial={{ opacity: 0, scale: 1.08 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.96 }}
+          transition={{ duration: 1, ease: [0.25, 0.46, 0.45, 0.94] }}
+        />
       </AnimatePresence>
+      <div className="x-pres-frame-overlay" />
 
-      {/* HUD Frame */}
+      {/* HUD Brackets */}
       <div className="x-pres-hud">
-        <HUDCorners color={scene.accentColor} />
+        <div className="x-pres-hud-bracket x-pres-hud-tl" />
+        <div className="x-pres-hud-bracket x-pres-hud-tr" />
+        <div className="x-pres-hud-bracket x-pres-hud-bl" />
+        <div className="x-pres-hud-bracket x-pres-hud-br" />
+      </div>
 
-        {/* HUD top label with glitch */}
-        {scene.hudLabel && (
-          <motion.div
-            key={`hud-${currentScene}`}
-            className="x-pres-hud-label"
-            initial={{ opacity: 0, y: -20, filter: "blur(4px)" }}
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-            style={{ color: scene.accentColor }}
-          >
-            <GlitchText text={scene.hudLabel} />
-          </motion.div>
-        )}
-
-        {/* Animated timeline bar at top */}
-        <div className="x-pres-timeline-bar">
-          <motion.div
-            className="x-pres-timeline-fill"
-            animate={{ width: `${((currentScene + 1) / scenes.length) * 100}%` }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
-            style={{ backgroundColor: scene.accentColor }}
-          />
-        </div>
-
-        {/* Scene counter */}
+      {/* HUD Top Label */}
+      {scene.hudLabel && (
         <motion.div
-          key={`counter-${currentScene}`}
-          className="x-pres-scene-counter"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
+          key={`hud-${currentScene}`}
+          style={{
+            position: "absolute", top: 50, left: "50%", transform: "translateX(-50%)",
+            fontFamily: "var(--x-pres-font-mono)", fontSize: 11, fontWeight: 500,
+            letterSpacing: 2.5, color: scene.accentColor, zIndex: 80,
+            textShadow: `0 0 12px ${scene.accentColor}`,
+          }}
+          initial={{ opacity: 0, y: -15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
         >
-          <span className="x-pres-scene-current" style={{ color: scene.accentColor }}>
-            {String(currentScene + 1).padStart(2, "0")}
-          </span>
-          <span className="x-pres-scene-sep">/</span>
-          <span className="x-pres-scene-total">{String(scenes.length).padStart(2, "0")}</span>
+          {scene.hudLabel}
         </motion.div>
+      )}
 
-        {/* Progress dots - right side */}
-        <div className="x-pres-progress">
-          {scenes.map((s, i) => (
-            <motion.div
-              key={i}
-              className={`x-pres-dot ${i === currentScene ? "active" : ""} ${i < currentScene ? "passed" : ""}`}
-              style={
-                i === currentScene
-                  ? { backgroundColor: scene.accentColor, boxShadow: `0 0 12px ${scene.accentColor}` }
-                  : i < currentScene
-                  ? { backgroundColor: `${scene.accentColor}44` }
-                  : {}
-              }
-              whileHover={{ scale: 1.5 }}
-              onClick={() => {
-                if (!isTransitioning) {
-                  setIsTransitioning(true);
-                  setCurrentScene(i);
-                  setTimeout(() => setIsTransitioning(false), 1000);
-                }
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Data line (bottom right) */}
-        {scene.dataLine && (
+      {/* HUD Bottom-Right: Signal + REC */}
+      <div style={{ position: "absolute", bottom: 50, right: 50, zIndex: 80, display: "flex", alignItems: "center", gap: 16 }}>
+        <SignalStrength sceneId={scene.id} />
+        {(scene.id === 7 || scene.id === 9) && (
           <motion.div
-            key={`data-${currentScene}`}
-            className="x-pres-data-container"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.2 }}
+            className="x-pres-hud-rec"
+            animate={{ opacity: [1, 0.3, 1] }}
+            transition={{ duration: 1.2, repeat: Infinity }}
           >
-            <DataLine text={scene.dataLine} color={scene.accentColor} delay={1.2} />
+            <div className="x-pres-hud-rec-dot" />
+            REC
           </motion.div>
         )}
+      </div>
+
+      {/* Controls — top right */}
+      <motion.div
+        className="x-pres-controls-wrapper"
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 1, duration: 0.6 }}
+      >
+        {/* Scroll Mode Pill */}
+        <div className="x-pres-control-pill">
+          <button
+            className={`x-pres-control-btn ${scrollMode === "section" ? "active" : ""}`}
+            style={scrollMode === "section" ? { background: scene.accentColor } : {}}
+            onClick={() => setScrollMode("section")}
+            data-tooltip="Section"
+            aria-label="Section mode"
+          >
+            ⬤
+          </button>
+          <button
+            className={`x-pres-control-btn ${scrollMode === "continuous" ? "active" : ""}`}
+            style={scrollMode === "continuous" ? { background: scene.accentColor } : {}}
+            onClick={() => setScrollMode("continuous")}
+            data-tooltip="Continuous"
+            aria-label="Continuous scroll"
+          >
+            ≡
+          </button>
+          <button
+            className={`x-pres-control-btn ${scrollMode === "autoplay" ? "active" : ""}`}
+            style={scrollMode === "autoplay" ? { background: scene.accentColor } : {}}
+            onClick={() => setScrollMode(scrollMode === "autoplay" ? "section" : "autoplay")}
+            data-tooltip="Auto-play"
+            aria-label="Auto-play mode"
+          >
+            {scrollMode === "autoplay" ? "⏸" : "▶"}
+            {scrollMode === "autoplay" && (
+              <svg className="x-pres-autoplay-ring" viewBox="0 0 36 36">
+                <circle
+                  cx="18" cy="18" r="16"
+                  style={{ strokeDashoffset: 100 - autoplayProgress }}
+                />
+              </svg>
+            )}
+          </button>
+        </div>
+
+        {/* Language Pill */}
+        <div className="x-pres-control-pill">
+          <button
+            className={`x-pres-control-btn ${language === "both" ? "active" : ""}`}
+            style={language === "both" ? { background: scene.accentColor } : {}}
+            onClick={() => setLanguage("both")}
+            data-tooltip="Bilingual"
+            aria-label="Both languages"
+          >
+            ⊕
+          </button>
+          <button
+            className={`x-pres-control-btn ${language === "en" ? "active" : ""}`}
+            style={language === "en" ? { background: scene.accentColor } : {}}
+            onClick={() => setLanguage("en")}
+            data-tooltip="English"
+            aria-label="English only"
+          >
+            EN
+          </button>
+          <button
+            className={`x-pres-control-btn ${language === "he" ? "active" : ""}`}
+            style={language === "he" ? { background: scene.accentColor } : {}}
+            onClick={() => setLanguage("he")}
+            data-tooltip="עברית"
+            aria-label="Hebrew only"
+          >
+            עב
+          </button>
+        </div>
+      </motion.div>
+
+      {/* Navigation Dots */}
+      <div className="x-pres-nav">
+        {scenes.map((_, i) => (
+          <button
+            key={i}
+            className={`x-pres-nav-dot ${i === currentScene ? "active" : ""}`}
+            style={i === currentScene ? { background: scene.accentColor, boxShadow: `0 0 10px ${scene.accentColor}` } : {}}
+            onClick={() => { setCurrentScene(i); }}
+            aria-label={`Scene ${i + 1}`}
+          />
+        ))}
       </div>
 
       {/* Content Panel */}
       <AnimatePresence mode="wait">
-        {scene.titleEn && (
+        {title && (
           <motion.div
-            key={`content-${currentScene}`}
-            className={`x-pres-content ${isThankYou ? "x-pres-content-center" : ""}`}
-            initial={{ opacity: 0, x: -60, filter: "blur(8px)" }}
-            animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-            exit={{ opacity: 0, x: 60, filter: "blur(8px)" }}
-            transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            key={`content-${currentScene}-${language}`}
+            className={`x-pres-content ${scene.panelPosition} ${isRTL ? "rtl" : ""}`}
+            initial={{ opacity: 0, y: 30, filter: "blur(6px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: -20, filter: "blur(6px)" }}
+            transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="x-pres-glass-panel" style={{ borderColor: `${scene.accentColor}33` }}>
-              {/* Animated border glow */}
-              <div
-                className="x-pres-panel-glow"
-                style={{ background: `linear-gradient(135deg, ${scene.accentColor}22, transparent)` }}
-              />
+            {/* Part label */}
+            {partLabel && (
+              <div className="x-pres-label" style={{ color: scene.accentColor }}>
+                {partLabel}
+              </div>
+            )}
 
-              {/* Part label */}
-              {scene.part && (
-                <motion.div
-                  className="x-pres-part"
-                  style={{ color: scene.accentColor }}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                >
-                  {scene.part}
-                </motion.div>
+            {/* Title */}
+            <h1 className="x-pres-title" style={isThankYou ? { fontSize: "3.5rem", textAlign: "center" } : {}}>
+              {language === "both" ? (
+                <>
+                  <DecodeText text={scene.titleEn} trigger={currentScene} />
+                  <div style={{ fontSize: "0.8em", marginTop: 8, direction: "rtl", textAlign: "right" }}>
+                    {scene.titleHe}
+                  </div>
+                </>
+              ) : (
+                <DecodeText text={title} trigger={currentScene} />
               )}
+            </h1>
 
-              {/* English title — staggered letters */}
-              <motion.h1
-                className={`x-pres-title-en ${isThankYou ? "x-pres-title-large" : ""}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.6, duration: 0.5 }}
-              >
-                {scene.titleEn}
-              </motion.h1>
+            {/* Description */}
+            {!isThankYou && (
+              <div className="x-pres-description">
+                {language === "both" ? (
+                  <>
+                    <p>{scene.descriptionEn}</p>
+                    <p style={{ direction: "rtl", textAlign: "right", marginTop: 12 }}>{scene.descriptionHe}</p>
+                  </>
+                ) : (
+                  <p>{description}</p>
+                )}
+              </div>
+            )}
 
-              {/* Hebrew title (RTL) */}
-              <motion.h2
-                className={`x-pres-title-he ${isThankYou ? "x-pres-title-he-large" : ""}`}
-                dir="rtl"
-                lang="he"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.7, duration: 0.5 }}
-              >
-                {scene.titleHe}
-              </motion.h2>
+            {/* Thank You subtitle */}
+            {isThankYou && (
+              <div style={{ textAlign: "center", color: "var(--x-pres-text-muted)", marginTop: 16 }}>
+                {language === "both" ? (
+                  <>
+                    <p>{scene.descriptionEn}</p>
+                    <p style={{ direction: "rtl", marginTop: 8 }}>{scene.descriptionHe}</p>
+                  </>
+                ) : (
+                  <p>{description}</p>
+                )}
+              </div>
+            )}
 
-              {/* Animated separator */}
-              <motion.div
-                className="x-pres-separator"
-                style={{ backgroundColor: scene.accentColor }}
-                initial={{ width: 0 }}
-                animate={{ width: 80 }}
-                transition={{ delay: 0.8, duration: 0.6, ease: "easeOut" }}
-              />
-
-              {/* English description */}
-              {scene.descriptionEn && !isThankYou && (
-                <motion.p
-                  className="x-pres-desc-en"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.9, duration: 0.5 }}
-                >
-                  {scene.descriptionEn}
-                </motion.p>
-              )}
-
-              {/* Hebrew description (RTL) */}
-              {scene.descriptionHe && !isThankYou && (
-                <motion.p
-                  className="x-pres-desc-he"
-                  dir="rtl"
-                  lang="he"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1.0, duration: 0.5 }}
-                >
-                  {scene.descriptionHe}
-                </motion.p>
-              )}
-
-              {/* Thank you subtitle */}
-              {isThankYou && scene.descriptionEn && (
-                <motion.p
-                  className="x-pres-subtitle-center"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 1.2, duration: 0.8 }}
-                >
-                  {scene.descriptionEn}
-                </motion.p>
-              )}
-              {isThankYou && scene.descriptionHe && (
-                <motion.p
-                  className="x-pres-subtitle-center-he"
-                  dir="rtl"
-                  lang="he"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 1.4, duration: 0.8 }}
-                >
-                  {scene.descriptionHe}
-                </motion.p>
-              )}
-            </div>
+            {/* Data Line */}
+            {scene.dataLine && !isThankYou && (
+              <div className="x-pres-data-row">
+                <span style={{ color: "var(--x-pres-text-muted)" }}>DATA</span>
+                <span className="x-pres-data-val" style={{ color: scene.accentColor }}>
+                  {scene.dataLine}
+                </span>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Scroll hint - first scene only */}
-      {currentScene === 0 && (
+      {/* Scene Counter (bottom left) */}
+      <div style={{
+        position: "absolute", bottom: 50, left: 50, zIndex: 80,
+        fontFamily: "var(--x-pres-font-mono)", display: "flex", alignItems: "baseline", gap: 4,
+      }}>
+        <span style={{ fontSize: 32, fontWeight: 700, color: scene.accentColor, textShadow: `0 0 12px ${scene.accentColor}` }}>
+          {String(currentScene + 1).padStart(2, "0")}
+        </span>
+        <span style={{ fontSize: 18, color: "#64748B" }}>/</span>
+        <span style={{ fontSize: 14, color: "#64748B" }}>{String(scenes.length).padStart(2, "0")}</span>
+      </div>
+
+      {/* Progress bar top */}
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "rgba(255,255,255,0.05)", zIndex: 90 }}>
         <motion.div
-          className="x-pres-scroll-hint"
+          style={{ height: "100%", background: scene.accentColor, boxShadow: `0 0 8px ${scene.accentColor}`, borderRadius: "0 2px 2px 0" }}
+          animate={{ width: `${((currentScene + 1) / scenes.length) * 100}%` }}
+          transition={{ duration: 0.6, ease: "easeInOut" }}
+        />
+      </div>
+
+      {/* Scroll hint on first scene */}
+      {currentScene === 0 && scrollMode === "section" && (
+        <motion.div
+          style={{
+            position: "absolute", bottom: 50, left: "50%", transform: "translateX(-50%)",
+            display: "flex", flexDirection: "column", alignItems: "center", gap: 10, zIndex: 80,
+          }}
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          animate={{ opacity: 0.6 }}
           transition={{ delay: 3, duration: 1.5 }}
         >
           <motion.div
-            className="x-pres-scroll-arrow"
+            style={{ width: 20, height: 20, borderRight: "2px solid #64748B", borderBottom: "2px solid #64748B", transform: "rotate(45deg)" }}
             animate={{ y: [0, 8, 0] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           />
-          <span>SCROLL TO PROCEED</span>
+          <span style={{ fontFamily: "var(--x-pres-font-mono)", fontSize: 9, color: "#64748B", letterSpacing: 3 }}>
+            SCROLL TO PROCEED
+          </span>
         </motion.div>
       )}
 
-      {/* Ambient sound wave visualization (decorative) */}
-      <div className="x-pres-ambient-waves" aria-hidden="true">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <motion.div
-            key={i}
-            className="x-pres-wave-bar"
-            animate={{ scaleY: [0.3, 1, 0.3] }}
-            transition={{
-              duration: 1.5 + i * 0.2,
-              repeat: Infinity,
-              delay: i * 0.1,
-              ease: "easeInOut",
-            }}
-            style={{ backgroundColor: `${scene.accentColor}44` }}
-          />
-        ))}
-      </div>
+      {/* Glitch overlay for cyber attack scene */}
+      {scene.id === 5 && (
+        <motion.div
+          className="x-pres-glitch-overlay"
+          style={{ display: "block" }}
+          animate={{ opacity: [0, 0.15, 0, 0.1, 0] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        />
+      )}
     </div>
   );
 }

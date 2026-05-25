@@ -400,7 +400,7 @@ export default function XPresPage() {
     (direction: "next" | "prev") => {
       if (isTransitioning) return;
       const now = Date.now();
-      if (now - lastScrollTime.current < 1000) return;
+      if (now - lastScrollTime.current < 700) return;
       lastScrollTime.current = now;
 
       setIsTransitioning(true);
@@ -409,43 +409,48 @@ export default function XPresPage() {
       } else if (direction === "prev" && currentScene > 0) {
         setCurrentScene((s) => s - 1);
       }
-      setTimeout(() => setIsTransitioning(false), 1000);
+      setTimeout(() => setIsTransitioning(false), 700);
     },
     [currentScene, isTransitioning]
   );
 
-  // Wheel
+  // Lock body scroll
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, []);
+
+  // Wheel — attached to document to capture all scroll events
   useEffect(() => {
     const handler = (e: WheelEvent) => {
       e.preventDefault();
-      if (Math.abs(e.deltaY) > 30) {
+      e.stopPropagation();
+      if (Math.abs(e.deltaY) > 20) {
         navigate(e.deltaY > 0 ? "next" : "prev");
       }
     };
-    const el = containerRef.current;
-    if (el) el.addEventListener("wheel", handler, { passive: false });
-    return () => { if (el) el.removeEventListener("wheel", handler); };
+    document.addEventListener("wheel", handler, { passive: false });
+    return () => { document.removeEventListener("wheel", handler); };
   }, [navigate]);
 
-  // Touch
+  // Touch — attached to document
   useEffect(() => {
     const handleTouchStart = (e: TouchEvent) => {
       touchStartY.current = e.touches[0].clientY;
     };
     const handleTouchEnd = (e: TouchEvent) => {
       const diff = touchStartY.current - e.changedTouches[0].clientY;
-      if (Math.abs(diff) > 50) navigate(diff > 0 ? "next" : "prev");
+      if (Math.abs(diff) > 40) navigate(diff > 0 ? "next" : "prev");
     };
-    const el = containerRef.current;
-    if (el) {
-      el.addEventListener("touchstart", handleTouchStart, { passive: true });
-      el.addEventListener("touchend", handleTouchEnd, { passive: true });
-    }
+    document.addEventListener("touchstart", handleTouchStart, { passive: true });
+    document.addEventListener("touchend", handleTouchEnd, { passive: true });
     return () => {
-      if (el) {
-        el.removeEventListener("touchstart", handleTouchStart);
-        el.removeEventListener("touchend", handleTouchEnd);
-      }
+      document.removeEventListener("touchstart", handleTouchStart);
+      document.removeEventListener("touchend", handleTouchEnd);
     };
   }, [navigate]);
 

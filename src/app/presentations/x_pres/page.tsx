@@ -315,6 +315,7 @@ export default function XPresPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const autoplayRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [autoplayProgress, setAutoplayProgress] = useState(0);
+  const sceneRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   // Load language preference from localStorage
   useEffect(() => {
@@ -385,6 +386,27 @@ export default function XPresPage() {
     },
     [currentScene, isTransitioning, scrollMode]
   );
+
+  // IntersectionObserver for continuous mode — tracks which scene is in view
+  useEffect(() => {
+    if (scrollMode !== "continuous") return;
+    document.body.style.overflow = "";
+    document.documentElement.style.overflow = "";
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+            const idx = Number(entry.target.getAttribute("data-scene-index"));
+            if (!isNaN(idx)) setCurrentScene(idx);
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+    sceneRefs.current.forEach((el) => { if (el) observer.observe(el); });
+    return () => observer.disconnect();
+  }, [scrollMode, imagesLoaded]);
 
   // Lock scroll & handle wheel on document
   useEffect(() => {
@@ -487,60 +509,230 @@ export default function XPresPage() {
       {/* Scanlines */}
       <div className="x-pres-scanlines" aria-hidden="true" />
 
-      {/* Background */}
-      <AnimatePresence mode="sync">
-        <motion.div
-          key={`bg-${currentScene}`}
-          className="x-pres-frame-bg"
-          style={{ backgroundImage: `url(${scene.image})` }}
-          initial={{ opacity: 0, scale: 1.08 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.96 }}
-          transition={{ duration: 1, ease: [0.25, 0.46, 0.45, 0.94] }}
-        />
-      </AnimatePresence>
-      <div className="x-pres-frame-overlay" />
+      {scrollMode === "continuous" ? (
+        /* ─── Continuous Mode: All scenes stacked ─── */
+        <>
+          {scenes.map((s, i) => {
+            const isActive = i === currentScene;
+            const isRTLScene = language === "he";
+            const sTitle = language === "he" ? s.titleHe : s.titleEn;
+            const sDesc = language === "he" ? s.descriptionHe : s.descriptionEn;
+            const sPart = language === "he" ? s.partHe : s.part;
+            return (
+              <div
+                key={s.id}
+                ref={(el) => { sceneRefs.current[i] = el; }}
+                data-scene-index={i}
+                className="x-pres-scene"
+                style={{ position: "relative", height: "100vh", width: "100%", overflow: "hidden" }}
+              >
+                <div
+                  className="x-pres-frame-bg"
+                  style={{
+                    backgroundImage: `url(${s.image})`,
+                    position: "absolute", inset: 0,
+                    backgroundSize: "cover", backgroundPosition: "center",
+                  }}
+                />
+                <div className="x-pres-frame-overlay" style={{ position: "absolute", inset: 0 }} />
+                {/* Content panel */}
+                <div
+                  className={`x-pres-content ${s.panelPosition} ${isRTLScene ? "rtl" : ""}`}
+                  style={{ position: "absolute", opacity: isActive ? 1 : 0.4, transition: "opacity 0.5s" }}
+                >
+                  {sPart && <div className="x-pres-label" style={{ color: s.accentColor }}>{sPart}</div>}
+                  <h1 className="x-pres-title">
+                    {language === "both" ? (
+                      <>
+                        {s.titleEn}
+                        <div style={{ fontSize: "0.8em", marginTop: 8, direction: "rtl", textAlign: "right" }}>{s.titleHe}</div>
+                      </>
+                    ) : sTitle}
+                  </h1>
+                  {i < 12 && (
+                    <div className="x-pres-description">
+                      {language === "both" ? (
+                        <>
+                          <p>{s.descriptionEn}</p>
+                          <p style={{ direction: "rtl", textAlign: "right", marginTop: 12 }}>{s.descriptionHe}</p>
+                        </>
+                      ) : <p>{sDesc}</p>}
+                    </div>
+                  )}
+                  {s.dataLine && i < 12 && (
+                    <div className="x-pres-data-row">
+                      <span style={{ color: "var(--x-pres-text-muted)" }}>DATA</span>
+                      <span className="x-pres-data-val" style={{ color: s.accentColor }}>{s.dataLine}</span>
+                    </div>
+                  )}
+                </div>
+                {/* Scene number */}
+                <div style={{
+                  position: "absolute", bottom: 30, left: 30, zIndex: 80,
+                  fontFamily: "var(--x-pres-font-mono)", display: "flex", alignItems: "baseline", gap: 4,
+                }}>
+                  <span style={{ fontSize: 24, fontWeight: 700, color: s.accentColor }}>{String(i + 1).padStart(2, "0")}</span>
+                  <span style={{ fontSize: 14, color: "#64748B" }}>/{String(scenes.length).padStart(2, "0")}</span>
+                </div>
+              </div>
+            );
+          })}
+        </>
+      ) : (
+        /* ─── Section / Autoplay Mode: Single scene with transitions ─── */
+        <>
+          {/* Background */}
+          <AnimatePresence mode="sync">
+            <motion.div
+              key={`bg-${currentScene}`}
+              className="x-pres-frame-bg"
+              style={{ backgroundImage: `url(${scene.image})` }}
+              initial={{ opacity: 0, scale: 1.08 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              transition={{ duration: 1, ease: [0.25, 0.46, 0.45, 0.94] }}
+            />
+          </AnimatePresence>
+          <div className="x-pres-frame-overlay" />
 
-      {/* HUD Brackets */}
-      <div className="x-pres-hud">
-        <div className="x-pres-hud-bracket x-pres-hud-tl" />
-        <div className="x-pres-hud-bracket x-pres-hud-tr" />
-        <div className="x-pres-hud-bracket x-pres-hud-bl" />
-        <div className="x-pres-hud-bracket x-pres-hud-br" />
-      </div>
+          {/* HUD Brackets */}
+          <div className="x-pres-hud">
+            <div className="x-pres-hud-bracket x-pres-hud-tl" />
+            <div className="x-pres-hud-bracket x-pres-hud-tr" />
+            <div className="x-pres-hud-bracket x-pres-hud-bl" />
+            <div className="x-pres-hud-bracket x-pres-hud-br" />
+          </div>
 
-      {/* HUD Top Label */}
-      {scene.hudLabel && (
-        <motion.div
-          key={`hud-${currentScene}`}
-          style={{
-            position: "absolute", top: 50, left: "50%", transform: "translateX(-50%)",
-            fontFamily: "var(--x-pres-font-mono)", fontSize: 11, fontWeight: 500,
-            letterSpacing: 2.5, color: scene.accentColor, zIndex: 80,
-            textShadow: `0 0 12px ${scene.accentColor}`,
-          }}
-          initial={{ opacity: 0, y: -15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-        >
-          {scene.hudLabel}
-        </motion.div>
+          {/* HUD Top Label */}
+          {scene.hudLabel && (
+            <motion.div
+              key={`hud-${currentScene}`}
+              style={{
+                position: "absolute", top: 50, left: "50%", transform: "translateX(-50%)",
+                fontFamily: "var(--x-pres-font-mono)", fontSize: 11, fontWeight: 500,
+                letterSpacing: 2.5, color: scene.accentColor, zIndex: 80,
+                textShadow: `0 0 12px ${scene.accentColor}`,
+              }}
+              initial={{ opacity: 0, y: -15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+            >
+              {scene.hudLabel}
+            </motion.div>
+          )}
+
+          {/* HUD Bottom-Right: Signal + REC */}
+          <div style={{ position: "absolute", bottom: 50, right: 50, zIndex: 80, display: "flex", alignItems: "center", gap: 16 }}>
+            <SignalStrength sceneId={scene.id} />
+            {(scene.id === 7 || scene.id === 9) && (
+              <motion.div
+                className="x-pres-hud-rec"
+                animate={{ opacity: [1, 0.3, 1] }}
+                transition={{ duration: 1.2, repeat: Infinity }}
+              >
+                <div className="x-pres-hud-rec-dot" />
+                REC
+              </motion.div>
+            )}
+          </div>
+
+          {/* Content Panel */}
+          <AnimatePresence mode="wait">
+            {title && (
+              <motion.div
+                key={`content-${currentScene}-${language}`}
+                className={`x-pres-content ${scene.panelPosition} ${isRTL ? "rtl" : ""}`}
+                initial={{ opacity: 0, y: 30, filter: "blur(6px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                exit={{ opacity: 0, y: -20, filter: "blur(6px)" }}
+                transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              >
+                {partLabel && <div className="x-pres-label" style={{ color: scene.accentColor }}>{partLabel}</div>}
+                <h1 className="x-pres-title" style={isThankYou ? { fontSize: "3.5rem", textAlign: "center" } : {}}>
+                  {language === "both" ? (
+                    <>
+                      <DecodeText text={scene.titleEn} trigger={currentScene} />
+                      <div style={{ fontSize: "0.8em", marginTop: 8, direction: "rtl", textAlign: "right" }}>{scene.titleHe}</div>
+                    </>
+                  ) : <DecodeText text={title} trigger={currentScene} />}
+                </h1>
+                {!isThankYou && (
+                  <div className="x-pres-description">
+                    {language === "both" ? (
+                      <>
+                        <p>{scene.descriptionEn}</p>
+                        <p style={{ direction: "rtl", textAlign: "right", marginTop: 12 }}>{scene.descriptionHe}</p>
+                      </>
+                    ) : <p>{description}</p>}
+                  </div>
+                )}
+                {isThankYou && (
+                  <div style={{ textAlign: "center", color: "var(--x-pres-text-muted)", marginTop: 16 }}>
+                    {language === "both" ? (
+                      <>
+                        <p>{scene.descriptionEn}</p>
+                        <p style={{ direction: "rtl", marginTop: 8 }}>{scene.descriptionHe}</p>
+                      </>
+                    ) : <p>{description}</p>}
+                  </div>
+                )}
+                {scene.dataLine && !isThankYou && (
+                  <div className="x-pres-data-row">
+                    <span style={{ color: "var(--x-pres-text-muted)" }}>DATA</span>
+                    <span className="x-pres-data-val" style={{ color: scene.accentColor }}>{scene.dataLine}</span>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Scene Counter (bottom left) */}
+          <div style={{
+            position: "absolute", bottom: 50, left: 50, zIndex: 80,
+            fontFamily: "var(--x-pres-font-mono)", display: "flex", alignItems: "baseline", gap: 4,
+          }}>
+            <span style={{ fontSize: 32, fontWeight: 700, color: scene.accentColor, textShadow: `0 0 12px ${scene.accentColor}` }}>
+              {String(currentScene + 1).padStart(2, "0")}
+            </span>
+            <span style={{ fontSize: 18, color: "#64748B" }}>/</span>
+            <span style={{ fontSize: 14, color: "#64748B" }}>{String(scenes.length).padStart(2, "0")}</span>
+          </div>
+
+          {/* Scroll hint on first scene */}
+          {currentScene === 0 && scrollMode === "section" && (
+            <motion.div
+              style={{
+                position: "absolute", bottom: 50, left: "50%", transform: "translateX(-50%)",
+                display: "flex", flexDirection: "column", alignItems: "center", gap: 10, zIndex: 80,
+              }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.6 }}
+              transition={{ delay: 3, duration: 1.5 }}
+            >
+              <motion.div
+                style={{ width: 20, height: 20, borderRight: "2px solid #64748B", borderBottom: "2px solid #64748B", transform: "rotate(45deg)" }}
+                animate={{ y: [0, 8, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              />
+              <span style={{ fontFamily: "var(--x-pres-font-mono)", fontSize: 9, color: "#64748B", letterSpacing: 3 }}>
+                SCROLL TO PROCEED
+              </span>
+            </motion.div>
+          )}
+
+          {/* Glitch overlay for cyber attack scene */}
+          {scene.id === 5 && (
+            <motion.div
+              className="x-pres-glitch-overlay"
+              style={{ display: "block" }}
+              animate={{ opacity: [0, 0.15, 0, 0.1, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+          )}
+        </>
       )}
 
-      {/* HUD Bottom-Right: Signal + REC */}
-      <div style={{ position: "absolute", bottom: 50, right: 50, zIndex: 80, display: "flex", alignItems: "center", gap: 16 }}>
-        <SignalStrength sceneId={scene.id} />
-        {(scene.id === 7 || scene.id === 9) && (
-          <motion.div
-            className="x-pres-hud-rec"
-            animate={{ opacity: [1, 0.3, 1] }}
-            transition={{ duration: 1.2, repeat: Infinity }}
-          >
-            <div className="x-pres-hud-rec-dot" />
-            REC
-          </motion.div>
-        )}
-      </div>
+      {/* ─── Shared Controls (always visible) ─── */}
 
       {/* Controls — top right */}
       <motion.div
@@ -548,6 +740,7 @@ export default function XPresPage() {
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 1, duration: 0.6 }}
+        style={scrollMode === "continuous" ? { position: "fixed" } : {}}
       >
         {/* Scroll Mode Pill */}
         <div className="x-pres-control-pill">
@@ -621,143 +814,31 @@ export default function XPresPage() {
       </motion.div>
 
       {/* Navigation Dots */}
-      <div className="x-pres-nav">
+      <div className="x-pres-nav" style={scrollMode === "continuous" ? { position: "fixed" } : {}}>
         {scenes.map((_, i) => (
           <button
             key={i}
             className={`x-pres-nav-dot ${i === currentScene ? "active" : ""}`}
             style={i === currentScene ? { background: scene.accentColor, boxShadow: `0 0 10px ${scene.accentColor}` } : {}}
-            onClick={() => { setCurrentScene(i); }}
+            onClick={() => {
+              setCurrentScene(i);
+              if (scrollMode === "continuous" && sceneRefs.current[i]) {
+                sceneRefs.current[i]!.scrollIntoView({ behavior: "smooth" });
+              }
+            }}
             aria-label={`Scene ${i + 1}`}
           />
         ))}
       </div>
 
-      {/* Content Panel */}
-      <AnimatePresence mode="wait">
-        {title && (
-          <motion.div
-            key={`content-${currentScene}-${language}`}
-            className={`x-pres-content ${scene.panelPosition} ${isRTL ? "rtl" : ""}`}
-            initial={{ opacity: 0, y: 30, filter: "blur(6px)" }}
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            exit={{ opacity: 0, y: -20, filter: "blur(6px)" }}
-            transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          >
-            {/* Part label */}
-            {partLabel && (
-              <div className="x-pres-label" style={{ color: scene.accentColor }}>
-                {partLabel}
-              </div>
-            )}
-
-            {/* Title */}
-            <h1 className="x-pres-title" style={isThankYou ? { fontSize: "3.5rem", textAlign: "center" } : {}}>
-              {language === "both" ? (
-                <>
-                  <DecodeText text={scene.titleEn} trigger={currentScene} />
-                  <div style={{ fontSize: "0.8em", marginTop: 8, direction: "rtl", textAlign: "right" }}>
-                    {scene.titleHe}
-                  </div>
-                </>
-              ) : (
-                <DecodeText text={title} trigger={currentScene} />
-              )}
-            </h1>
-
-            {/* Description */}
-            {!isThankYou && (
-              <div className="x-pres-description">
-                {language === "both" ? (
-                  <>
-                    <p>{scene.descriptionEn}</p>
-                    <p style={{ direction: "rtl", textAlign: "right", marginTop: 12 }}>{scene.descriptionHe}</p>
-                  </>
-                ) : (
-                  <p>{description}</p>
-                )}
-              </div>
-            )}
-
-            {/* Thank You subtitle */}
-            {isThankYou && (
-              <div style={{ textAlign: "center", color: "var(--x-pres-text-muted)", marginTop: 16 }}>
-                {language === "both" ? (
-                  <>
-                    <p>{scene.descriptionEn}</p>
-                    <p style={{ direction: "rtl", marginTop: 8 }}>{scene.descriptionHe}</p>
-                  </>
-                ) : (
-                  <p>{description}</p>
-                )}
-              </div>
-            )}
-
-            {/* Data Line */}
-            {scene.dataLine && !isThankYou && (
-              <div className="x-pres-data-row">
-                <span style={{ color: "var(--x-pres-text-muted)" }}>DATA</span>
-                <span className="x-pres-data-val" style={{ color: scene.accentColor }}>
-                  {scene.dataLine}
-                </span>
-              </div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Scene Counter (bottom left) */}
-      <div style={{
-        position: "absolute", bottom: 50, left: 50, zIndex: 80,
-        fontFamily: "var(--x-pres-font-mono)", display: "flex", alignItems: "baseline", gap: 4,
-      }}>
-        <span style={{ fontSize: 32, fontWeight: 700, color: scene.accentColor, textShadow: `0 0 12px ${scene.accentColor}` }}>
-          {String(currentScene + 1).padStart(2, "0")}
-        </span>
-        <span style={{ fontSize: 18, color: "#64748B" }}>/</span>
-        <span style={{ fontSize: 14, color: "#64748B" }}>{String(scenes.length).padStart(2, "0")}</span>
-      </div>
-
       {/* Progress bar top */}
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "rgba(255,255,255,0.05)", zIndex: 90 }}>
+      <div style={{ position: scrollMode === "continuous" ? "fixed" : "absolute", top: 0, left: 0, right: 0, height: 3, background: "rgba(255,255,255,0.05)", zIndex: 90 }}>
         <motion.div
           style={{ height: "100%", background: scene.accentColor, boxShadow: `0 0 8px ${scene.accentColor}`, borderRadius: "0 2px 2px 0" }}
           animate={{ width: `${((currentScene + 1) / scenes.length) * 100}%` }}
           transition={{ duration: 0.6, ease: "easeInOut" }}
         />
       </div>
-
-      {/* Scroll hint on first scene */}
-      {currentScene === 0 && scrollMode === "section" && (
-        <motion.div
-          style={{
-            position: "absolute", bottom: 50, left: "50%", transform: "translateX(-50%)",
-            display: "flex", flexDirection: "column", alignItems: "center", gap: 10, zIndex: 80,
-          }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.6 }}
-          transition={{ delay: 3, duration: 1.5 }}
-        >
-          <motion.div
-            style={{ width: 20, height: 20, borderRight: "2px solid #64748B", borderBottom: "2px solid #64748B", transform: "rotate(45deg)" }}
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <span style={{ fontFamily: "var(--x-pres-font-mono)", fontSize: 9, color: "#64748B", letterSpacing: 3 }}>
-            SCROLL TO PROCEED
-          </span>
-        </motion.div>
-      )}
-
-      {/* Glitch overlay for cyber attack scene */}
-      {scene.id === 5 && (
-        <motion.div
-          className="x-pres-glitch-overlay"
-          style={{ display: "block" }}
-          animate={{ opacity: [0, 0.15, 0, 0.1, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        />
-      )}
     </div>
   );
 }

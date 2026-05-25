@@ -276,11 +276,11 @@ body {
 }
 
 .x-pres-container.mode-continuous .x-pres-content {
-  position: fixed;
+  position: absolute;
 }
 
 .x-pres-container.mode-continuous .x-pres-frame-bg {
-  position: fixed;
+  position: absolute;
 }
 
 /* Cinematic Effects */

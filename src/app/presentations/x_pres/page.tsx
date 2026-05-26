@@ -484,7 +484,9 @@ export default function XPresPage() {
   /* ─── Unified transition entry ────────────────────────────────── */
 
   const doGsapTransition = useCallback((nextIndex: number, dir: number) => {
-    if (mediaMode === "video") {
+    const fromScene = scenes[currentSceneRef.current];
+    const toScene = scenes[nextIndex];
+    if (mediaMode === "video" && fromScene.video && toScene.video) {
       doVideoTransition(nextIndex, dir);
     } else {
       doImageTransition(nextIndex, dir);

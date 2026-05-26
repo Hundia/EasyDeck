@@ -319,9 +319,10 @@ export default function XPresPage() {
   const [prevVideo, setPrevVideo] = useState<string>("");
   const [prevVisible, setPrevVisible] = useState(false);
   const [autoplayProgress, setAutoplayProgress] = useState(0);
-  const [mediaMode, setMediaMode] = useState<MediaMode>("image");
+  const [mediaMode, setMediaMode] = useState<MediaMode>("video");
   const [transitionVersion, setTransitionVersion] = useState<TransitionVersion>("A");
   const [activeTransition, setActiveTransition] = useState<ActiveTransition | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const transitionKeyRef = useRef(0);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -901,15 +902,33 @@ export default function XPresPage() {
         </>
       )}
 
-      {/* ─── Shared Controls ─── */}
+      {/* ─── Menu Dot + Collapsible Controls ─── */}
 
-      <motion.div
-        className="x-pres-controls-wrapper"
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 1, duration: 0.6 }}
-        style={scrollMode === "continuous" ? { position: "fixed" } : {}}
+      <button
+        className="x-pres-menu-dot"
+        style={{ background: scene.accentColor, boxShadow: `0 0 12px ${scene.accentColor}66` }}
+        onClick={() => setMenuOpen(!menuOpen)}
+        aria-label={menuOpen ? "Close menu" : "Open menu"}
       >
+        <motion.span
+          animate={{ rotate: menuOpen ? 45 : 0 }}
+          transition={{ duration: 0.3 }}
+          style={{ display: "block", width: "100%", height: "100%" }}
+        >
+          {menuOpen ? "✕" : ""}
+        </motion.span>
+      </button>
+
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            className="x-pres-controls-wrapper"
+            initial={{ opacity: 0, scale: 0.8, y: -10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: -10 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            style={scrollMode === "continuous" ? { position: "fixed" } : {}}
+          >
         {/* Scroll Mode Pill */}
         <div className="x-pres-control-pill">
           <button
@@ -1024,7 +1043,9 @@ export default function XPresPage() {
             </motion.div>
           )}
         </AnimatePresence>
-      </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Navigation Dots */}
       <div className="x-pres-nav" style={scrollMode === "continuous" ? { position: "fixed" } : {}}>

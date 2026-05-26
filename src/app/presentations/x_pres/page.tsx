@@ -740,12 +740,17 @@ export default function XPresPage() {
         /* ─── GSAP / Autoplay Mode ─── */
         <>
           {/* ── Background layer ── */}
-          {mediaMode === "video" ? (
+          {mediaMode === "video" && scene.video ? (
             <VideoBackground
               ref={videoBgRef}
-              currentSrc={scene.video || scene.image}
+              currentSrc={scene.video}
               prevSrc={prevVideo}
               prevVisible={prevVisible}
+            />
+          ) : mediaMode === "video" && !scene.video ? (
+            <div
+              className="x-pres-frame-bg"
+              style={{ backgroundImage: `url(${scene.image})`, zIndex: 1 }}
             />
           ) : (
             <>

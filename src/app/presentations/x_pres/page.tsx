@@ -70,11 +70,11 @@ const scenes: Scene[] = [
       "The Intel Research platform springs to life — analysts cross-reference the hostile operative against classified databases. Predictive models estimate location with 87.3% confidence.",
     descriptionHe:
       "פלטפורמת מחקר המודיעין קמה לחיים — אנליסטים מצליבים את הגורם העוין מול מאגרי מידע מסווגים. מודלים חזויים מעריכים מיקום ברמת וודאות של 87.3%.",
-    image: "/presentations/x_pres/frames/frame-0003.webp",
+    image: "/presentations/x_pres/frames/frame-0006.webp",
     accentColor: "#00D4FF",
     hudLabel: "SCENE 03 // ANALYSIS ACTIVE",
     dataLine: "MATCH CONFIDENCE: 87.3% | DATABASES: 14 CROSS-REFERENCED",
-    panelPosition: "bottom-left",
+    panelPosition: "bottom-right",
   },
   {
     id: 4,
@@ -86,11 +86,11 @@ const scenes: Scene[] = [
       "The command has a predicted location. Intelligence drones are deployed to locate and confirm the target visually. Three assets airborne.",
     descriptionHe:
       "לפיקוד יש מיקום חזוי. כטב״מי מודיעין נשלחים לאתר ולאשר את המטרה חזותית. שלושה כלים באוויר.",
-    image: "/presentations/x_pres/frames/frame-0004.webp",
+    image: "/presentations/x_pres/frames/frame-0008.webp",
     accentColor: "#00E676",
     hudLabel: "SCENE 04 // ASSETS DEPLOYED",
     dataLine: "EAGLE-1: ALT 2400m | EAGLE-2: ALT 1800m | EAGLE-3: STANDBY",
-    panelPosition: "bottom-right",
+    panelPosition: "bottom-center",
   },
   {
     id: 5,
@@ -102,7 +102,7 @@ const scenes: Scene[] = [
       "Communications with drones are severed. The NSOC detects a coordinated cyber attack — RF jamming combined with network intrusion targeting drone links.",
     descriptionHe:
       "התקשורת עם הכטב״מים נותקה. מערך הסייבר הלאומי מזהה מתקפת סייבר מתואמת — הפרעת RF בשילוב חדירה לרשת התקשורת.",
-    image: "/presentations/x_pres/frames/frame-0005.webp",
+    image: "/presentations/x_pres/frames/frame-0009.webp",
     accentColor: "#FF2E3B",
     hudLabel: "SCENE 05 // BREACH DETECTED",
     dataLine: "⚠ COMM LINK SEVERED | VECTOR: RF JAM + NETWORK INTRUSION",
@@ -118,11 +118,11 @@ const scenes: Scene[] = [
       "An NSOC operator calmly activates a pre-configured defensive playbook. Automated countermeasures deploy. Attack neutralized. Comms restored.",
     descriptionHe:
       "מפעיל במערך הסייבר מפעיל בשלווה תרחיש הגנתי מוכן מראש. אמצעי נגד אוטומטיים נפרסים. המתקפה נוטרלה. התקשורת שוחזרה.",
-    image: "/presentations/x_pres/frames/frame-0006.webp",
+    image: "/presentations/x_pres/frames/frame-0004.webp",
     accentColor: "#00E676",
     hudLabel: "SCENE 06 // THREAT MITIGATED",
     dataLine: "PLAYBOOK: COMM-SHIELD ALPHA | EFFICACY: 94.7% | STATUS: RESTORED",
-    panelPosition: "bottom-right",
+    panelPosition: "bottom-left",
   },
   {
     id: 7,
@@ -134,11 +134,11 @@ const scenes: Scene[] = [
       "Drone communications restored. VISINT sensors lock onto the target. Crystal-clear surveillance footage streams to command — confidence 96.4%.",
     descriptionHe:
       "התקשורת עם הכטב״מים שוחזרה. חיישני VISINT ננעלים על המטרה. צילומי מעקב חדים זורמים לפיקוד — וודאות 96.4%.",
-    image: "/presentations/x_pres/frames/frame-0007.webp",
+    image: "/presentations/x_pres/frames/frame-0010.webp",
     accentColor: "#00D4FF",
     hudLabel: "SCENE 07 // TRACKING ACTIVE",
     dataLine: "TGT-001 | CONFIDENCE: 96.4% | SPEED: 1.2 m/s | DIST: 3.7km",
-    panelPosition: "bottom-left",
+    panelPosition: "bottom-right",
   },
   {
     id: 8,
@@ -150,11 +150,11 @@ const scenes: Scene[] = [
       "The commanding officer reviews confirmed intelligence. The weight of responsibility. The decision is made: neutralize the threat.",
     descriptionHe:
       "המפקד סוקר את המודיעין המאושר. כובד האחריות. ההחלטה מתקבלת: לנטרל את האיום.",
-    image: "/presentations/x_pres/frames/frame-0008.webp",
+    image: "/presentations/x_pres/frames/frame-0007.webp",
     accentColor: "#FFB830",
     hudLabel: "SCENE 08 // AUTHORITY CONFIRMED",
     dataLine: "OPERATION AUTHORITY: CONFIRMED | BIOMETRIC: VERIFIED",
-    panelPosition: "bottom-right",
+    panelPosition: "bottom-left",
   },
   {
     id: 9,
@@ -166,7 +166,7 @@ const scenes: Scene[] = [
       "Three drones converge in triangular formation. Spotlights illuminate from above. Surrounded, no escape — the target drops to his knees.",
     descriptionHe:
       "שלושה כטב״מים מתכנסים במשולש. זרקורים מאירים מלמעלה. מוקף, ללא מנוס — המטרה כורעת על ברכיו.",
-    image: "/presentations/x_pres/frames/frame-0009.webp",
+    image: "/presentations/x_pres/frames/frame-0011.webp",
     accentColor: "#00E676",
     hudLabel: "SCENE 09 // TARGET NEUTRALIZED",
     dataLine: "FORMATION: TRIANGLE | STATUS: SURRENDERED | THREAT: CONTAINED",
@@ -182,7 +182,7 @@ const scenes: Scene[] = [
       "Back at HQ — the Agent-to-Agent AI framework ingests all operational data. Multiple AI agents collaborate autonomously to investigate the full operation.",
     descriptionHe:
       "חזרה למטה — מסגרת ה-AI סוכן-לסוכן מעבדת את כל הנתונים המבצעיים. סוכני AI מרובים משתפים פעולה באופן אוטונומי לחקירת המבצע.",
-    image: "/presentations/x_pres/frames/frame-0010.webp",
+    image: "/presentations/x_pres/frames/frame-0005.webp",
     accentColor: "#3D7BFF",
     hudLabel: "SCENE 10 // AGENTS ACTIVE",
     dataLine: "AGENTS: 5 ACTIVE | DATA: 2.4TB PROCESSED | ANOMALIES: 3 FLAGGED",
@@ -198,7 +198,7 @@ const scenes: Scene[] = [
       "Investigation complete. A conversational AI agent presents findings through interactive visual dashboards — timelines, entity maps, root cause analysis.",
     descriptionHe:
       "החקירה הושלמה. סוכן שיחה מציג ממצאים דרך לוחות מחוונים ויזואליים אינטראקטיביים — צירי זמן, מפות ישויות, ניתוח שורש.",
-    image: "/presentations/x_pres/frames/frame-0011.webp",
+    image: "/presentations/x_pres/frames/frame-0012.webp",
     accentColor: "#00D4FF",
     hudLabel: "SCENE 11 // FINDINGS COMPLETE",
     dataLine: "THREAT GROUP: VORTEX-7 | CONFIDENCE: 91% | VECTORS: 2 IDENTIFIED",
@@ -208,13 +208,13 @@ const scenes: Scene[] = [
     id: 12,
     part: "PART 12 — PHILOSOPHY",
     partHe: "חלק 12 — פילוסופיה",
-    titleEn: "SPEC-DRIVEN DEVELOPMENT",
-    titleHe: "פיתוח מונחה מפרט",
+    titleEn: "RESPONSIBLE AI DEVELOPMENT",
+    titleHe: "פיתוח AI אחראי",
     descriptionEn:
-      "How we build — Spec-Driven Development for the agentic era. Every line traces to a spec. Humans own every decision. Full audit trail from intent to deployment.",
+      "Built on four pillars — Traceability, Ownership, Reproducibility, Accountability. Every decision logged. Every action traced from intent to deployment. Humans remain the authority.",
     descriptionHe:
-      "איך אנחנו בונים — פיתוח מונחה מפרט לעידן הסוכנים. כל שורה נגזרת ממפרט. אנשים בעלי כל החלטה. מסלול ביקורת מלא מכוונה ועד פריסה.",
-    image: "/presentations/x_pres/frames/frame-0012.webp",
+      "בנוי על ארבעה עמודים — יכולת מעקב, בעלות, יכולת שחזור, אחריותיות. כל החלטה מתועדת. כל פעולה עוקבת מכוונה ועד פריסה. בני האדם נותרים הסמכות.",
+    image: "/presentations/x_pres/frames/frame-0013.webp",
     accentColor: "#FFB830",
     hudLabel: "SCENE 12 // DEVELOPMENT PHILOSOPHY",
     dataLine: "TRACEABILITY | OWNERSHIP | REPRODUCIBILITY | ACCOUNTABILITY",
@@ -228,7 +228,7 @@ const scenes: Scene[] = [
     titleHe: "תודה",
     descriptionEn: "Intelligence Software Department — Securing the Future Through Innovation",
     descriptionHe: "מחלקת תוכנה מודיעינית — מאבטחים את העתיד באמצעות חדשנות",
-    image: "/presentations/x_pres/frames/frame-0013.webp",
+    image: "/presentations/x_pres/frames/frame-0014.webp",
     accentColor: "#00D4FF",
     hudLabel: "",
     dataLine: "SECURING THE FUTURE THROUGH INNOVATION",
@@ -242,7 +242,7 @@ const scenes: Scene[] = [
     titleHe: "",
     descriptionEn: "",
     descriptionHe: "",
-    image: "/presentations/x_pres/frames/frame-0014.webp",
+    image: "/presentations/x_pres/frames/frame-0003.webp",
     accentColor: "#00D4FF",
     hudLabel: "",
     panelPosition: "bottom-center",

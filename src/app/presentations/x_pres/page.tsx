@@ -232,7 +232,6 @@ const scenes: Scene[] = [
     descriptionHe:
       "בנוי על ארבעה עמודים — יכולת מעקב, בעלות, יכולת שחזור, אחריותיות. כל החלטה מתועדת. כל פעולה עוקבת מכוונה ועד פריסה. בני האדם נותרים הסמכות.",
     image: "/presentations/x_pres/frames/frame-0013.webp",
-    video: "/presentations/x_pres/videos/12.mp4",
     accentColor: "#FFB830",
     hudLabel: "SCENE 12 // DEVELOPMENT PHILOSOPHY",
     dataLine: "TRACEABILITY | OWNERSHIP | REPRODUCIBILITY | ACCOUNTABILITY",

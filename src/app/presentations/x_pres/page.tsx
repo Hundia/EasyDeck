@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { motion } from "framer-motion";
+import gsap from "gsap";
+import { Observer } from "gsap/Observer";
 import "./styles.css";
 
 /* ─── Types ───────────────────────────────────────────────────────── */
 
-type ScrollMode = "section" | "continuous" | "autoplay";
+type ScrollMode = "gsap" | "continuous" | "autoplay";
 type Language = "both" | "en" | "he";
 type PanelPosition = "bottom-left" | "bottom-right" | "bottom-center" | "top-left" | "top-right";
 
@@ -249,57 +251,27 @@ const scenes: Scene[] = [
   },
 ];
 
-/* ─── Utility: Decode Text Effect ─────────────────────────────────── */
-
-function DecodeText({ text, trigger }: { text: string; trigger: number }) {
-  const [displayed, setDisplayed] = useState(text);
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*";
-
-  useEffect(() => {
-    let frame = 0;
-    const totalFrames = 20;
-    const interval = setInterval(() => {
-      frame++;
-      const progress = frame / totalFrames;
-      const decoded = text
-        .split("")
-        .map((char, i) => {
-          if (char === " ") return " ";
-          if (i / text.length < progress) return char;
-          return chars[Math.floor(Math.random() * chars.length)];
-        })
-        .join("");
-      setDisplayed(decoded);
-      if (frame >= totalFrames) clearInterval(interval);
-    }, 30);
-    return () => clearInterval(interval);
-  }, [trigger, text]);
-
-  return <>{displayed}</>;
-}
-
 /* ─── Signal Strength Indicator ───────────────────────────────────── */
 
 function SignalStrength({ sceneId }: { sceneId: number }) {
   const getStrength = (id: number) => {
-    if (id === 5) return [3, 2, 0, 0, 0]; // Cyber attack - signal lost
-    if (id === 6) return [8, 6, 5, 3, 2]; // Recovering
-    return [12, 10, 8, 6, 4]; // Full signal
+    if (id === 6) return [3, 2, 0, 0, 0]; // Cyber attack — signal lost
+    if (id === 7) return [8, 6, 5, 3, 2]; // Recovering
+    return [12, 10, 8, 6, 4];             // Full signal
   };
   const bars = getStrength(sceneId);
-
   return (
     <div className="x-pres-hud-signal">
       {bars.map((h, i) => (
-        <div
-          key={i}
-          className="x-pres-hud-signal-bar"
-          style={{ height: `${h}px` }}
-        />
+        <div key={i} className="x-pres-hud-signal-bar" style={{ height: `${h}px` }} />
       ))}
     </div>
   );
 }
+
+/* ─── Register GSAP plugins ───────────────────────────────────────── */
+
+gsap.registerPlugin(Observer);
 
 /* ─── Main Component ──────────────────────────────────────────────── */
 
@@ -308,23 +280,26 @@ export default function XPresPage() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [loadProgress, setLoadProgress] = useState(0);
-  const [scrollMode, setScrollMode] = useState<ScrollMode>("section");
+  const [scrollMode, setScrollMode] = useState<ScrollMode>("gsap");
   const [language, setLanguage] = useState<Language>("both");
-  const lastScrollTime = useRef(0);
-  const touchStartY = useRef(0);
+  const [prevImage, setPrevImage] = useState<string>("");
+  const [prevVisible, setPrevVisible] = useState(false);
+  const [autoplayProgress, setAutoplayProgress] = useState(0);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const autoplayRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const [autoplayProgress, setAutoplayProgress] = useState(0);
-  const [navDirection, setNavDirection] = useState(0);
+  const prevBgRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const isTransitioningRef = useRef(false);
+  const currentSceneRef = useRef(0);
   const sceneRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const gsapObserverRef = useRef<ReturnType<typeof Observer.create> | null>(null);
 
-  // Load language preference from localStorage
+  // Language persistence
   useEffect(() => {
     const saved = typeof window !== "undefined" ? localStorage.getItem("x-pres-lang") : null;
     if (saved === "en" || saved === "he" || saved === "both") setLanguage(saved);
   }, []);
-
-  // Persist language preference
   useEffect(() => {
     if (typeof window !== "undefined") localStorage.setItem("x-pres-lang", language);
   }, [language]);
@@ -346,18 +321,88 @@ export default function XPresPage() {
     });
   }, []);
 
-  // Autoplay mode
+  // Keep currentSceneRef in sync
+  useEffect(() => {
+    currentSceneRef.current = currentScene;
+  }, [currentScene]);
+
+  /* ─── GSAP transition ─────────────────────────────────────────── */
+  // Strategy: old image div sits on top and slides out, new image is already
+  // underneath. Panel exits first (before state update) to avoid content flash.
+
+  const doGsapTransition = useCallback((nextIndex: number, dir: number) => {
+    if (isTransitioningRef.current) return;
+    if (nextIndex < 0 || nextIndex >= scenes.length) return;
+    isTransitioningRef.current = true;
+    setIsTransitioning(true);
+
+    // 1. Slide panel out immediately (panel becomes invisible before React re-renders)
+    const panelEl = panelRef.current;
+    if (panelEl) {
+      gsap.killTweensOf(panelEl);
+      gsap.to(panelEl, { opacity: 0, y: dir * -28, duration: 0.2, ease: "power2.in" });
+    }
+
+    // 2. After panel exit, update state (React re-renders silently behind old bg)
+    setTimeout(() => {
+      setPrevImage(scenes[currentSceneRef.current].image);
+      setPrevVisible(true);
+      setCurrentScene(nextIndex);
+      currentSceneRef.current = nextIndex;
+
+      // 3. After React paints new state, animate old bg out + new panel in
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const prevEl = prevBgRef.current;
+
+          if (prevEl) {
+            gsap.killTweensOf(prevEl);
+            gsap.fromTo(
+              prevEl,
+              { opacity: 1, y: 0, scale: 1 },
+              {
+                opacity: 0,
+                y: dir * -110,
+                scale: 0.93,
+                duration: 0.72,
+                ease: "power3.inOut",
+                onComplete: () => {
+                  setPrevVisible(false);
+                  isTransitioningRef.current = false;
+                  setIsTransitioning(false);
+                },
+              }
+            );
+          } else {
+            setPrevVisible(false);
+            isTransitioningRef.current = false;
+            setIsTransitioning(false);
+          }
+
+          // Slide new panel content in
+          const newPanel = panelRef.current;
+          if (newPanel) {
+            gsap.killTweensOf(newPanel);
+            gsap.fromTo(
+              newPanel,
+              { opacity: 0, y: dir * 36 },
+              { opacity: 1, y: 0, duration: 0.55, ease: "power3.out", delay: 0.1 }
+            );
+          }
+        });
+      });
+    }, 210); // matches panel exit duration + small buffer
+  }, []);
+
+  // Autoplay
   useEffect(() => {
     if (scrollMode === "autoplay") {
       setAutoplayProgress(0);
       const progressInterval = setInterval(() => {
-        setAutoplayProgress((p) => {
-          if (p >= 100) return 0;
-          return p + (100 / 60); // 6 seconds = 60 * 100ms ticks
-        });
+        setAutoplayProgress((p) => (p >= 100 ? 0 : p + 100 / 60));
       }, 100);
       autoplayRef.current = setInterval(() => {
-        setCurrentScene((s) => (s + 1) % scenes.length);
+        doGsapTransition((currentSceneRef.current + 1) % scenes.length, 1);
         setAutoplayProgress(0);
       }, 6000);
       return () => {
@@ -368,28 +413,42 @@ export default function XPresPage() {
       if (autoplayRef.current) clearInterval(autoplayRef.current);
       setAutoplayProgress(0);
     }
-  }, [scrollMode]);
+  }, [scrollMode, doGsapTransition]);
 
-  const navigate = useCallback(
-    (direction: "next" | "prev") => {
-      if (isTransitioning || scrollMode === "autoplay") return;
-      const now = Date.now();
-      if (now - lastScrollTime.current < 700) return;
-      lastScrollTime.current = now;
+  // GSAP Observer — handles wheel / touch / pointer in gsap mode
+  useEffect(() => {
+    if (scrollMode !== "gsap") {
+      gsapObserverRef.current?.kill();
+      gsapObserverRef.current = null;
+      return;
+    }
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
 
-      setNavDirection(direction === "next" ? 1 : -1);
-      setIsTransitioning(true);
-      if (direction === "next" && currentScene < scenes.length - 1) {
-        setCurrentScene((s) => s + 1);
-      } else if (direction === "prev" && currentScene > 0) {
-        setCurrentScene((s) => s - 1);
-      }
-      setTimeout(() => setIsTransitioning(false), 700);
-    },
-    [currentScene, isTransitioning, scrollMode]
-  );
+    gsapObserverRef.current = Observer.create({
+      type: "wheel,touch,pointer",
+      onDown: () => {
+        const curr = currentSceneRef.current;
+        if (curr < scenes.length - 1) doGsapTransition(curr + 1, 1);
+      },
+      onUp: () => {
+        const curr = currentSceneRef.current;
+        if (curr > 0) doGsapTransition(curr - 1, -1);
+      },
+      wheelSpeed: -1,
+      tolerance: 10,
+      preventDefault: true,
+    });
 
-  // IntersectionObserver for continuous mode — tracks which scene is in view
+    return () => {
+      gsapObserverRef.current?.kill();
+      gsapObserverRef.current = null;
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [scrollMode, doGsapTransition]);
+
+  // Continuous mode — IntersectionObserver
   useEffect(() => {
     if (scrollMode !== "continuous") return;
     document.body.style.overflow = "auto";
@@ -410,71 +469,46 @@ export default function XPresPage() {
     return () => observer.disconnect();
   }, [scrollMode, imagesLoaded]);
 
-  // Lock scroll & handle wheel on document
+  // Autoplay — lock scroll
   useEffect(() => {
-    if (scrollMode === "continuous") return;
+    if (scrollMode !== "autoplay") return;
     document.body.style.overflow = "hidden";
     document.documentElement.style.overflow = "hidden";
-
-    const handler = (e: WheelEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (Math.abs(e.deltaY) > 20) {
-        navigate(e.deltaY > 0 ? "next" : "prev");
-      }
-    };
-    document.addEventListener("wheel", handler, { passive: false });
     return () => {
       document.body.style.overflow = "";
       document.documentElement.style.overflow = "";
-      document.removeEventListener("wheel", handler);
     };
-  }, [navigate, scrollMode]);
-
-  // Touch navigation
-  useEffect(() => {
-    if (scrollMode === "continuous") return;
-    const handleTouchStart = (e: TouchEvent) => {
-      touchStartY.current = e.touches[0].clientY;
-    };
-    const handleTouchEnd = (e: TouchEvent) => {
-      const diff = touchStartY.current - e.changedTouches[0].clientY;
-      if (Math.abs(diff) > 40) navigate(diff > 0 ? "next" : "prev");
-    };
-    document.addEventListener("touchstart", handleTouchStart, { passive: true });
-    document.addEventListener("touchend", handleTouchEnd, { passive: true });
-    return () => {
-      document.removeEventListener("touchstart", handleTouchStart);
-      document.removeEventListener("touchend", handleTouchEnd);
-    };
-  }, [navigate, scrollMode]);
+  }, [scrollMode]);
 
   // Keyboard
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "ArrowDown" || e.key === " " || e.key === "ArrowRight" || e.key === "PageDown") {
-        e.preventDefault();
-        navigate("next");
-      } else if (e.key === "ArrowUp" || e.key === "ArrowLeft" || e.key === "PageUp") {
-        e.preventDefault();
-        navigate("prev");
-      } else if (e.key === "Home") {
-        e.preventDefault();
-        setCurrentScene(0);
-      } else if (e.key === "End") {
-        e.preventDefault();
-        setCurrentScene(scenes.length - 1);
+      const goNext = e.key === "ArrowDown" || e.key === " " || e.key === "ArrowRight" || e.key === "PageDown";
+      const goPrev = e.key === "ArrowUp" || e.key === "ArrowLeft" || e.key === "PageUp";
+      const goHome = e.key === "Home";
+      const goEnd  = e.key === "End";
+      if (!goNext && !goPrev && !goHome && !goEnd) return;
+      e.preventDefault();
+      const curr = currentSceneRef.current;
+      if (scrollMode === "gsap" || scrollMode === "autoplay") {
+        if (goNext && curr < scenes.length - 1) doGsapTransition(curr + 1, 1);
+        else if (goPrev && curr > 0) doGsapTransition(curr - 1, -1);
+        else if (goHome && curr !== 0) doGsapTransition(0, -1);
+        else if (goEnd  && curr !== scenes.length - 1) doGsapTransition(scenes.length - 1, 1);
+      } else {
+        if (goNext) setCurrentScene((s) => Math.min(s + 1, scenes.length - 1));
+        else if (goPrev) setCurrentScene((s) => Math.max(s - 1, 0));
+        else if (goHome) setCurrentScene(0);
+        else if (goEnd)  setCurrentScene(scenes.length - 1);
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [navigate]);
+  }, [scrollMode, doGsapTransition]);
 
   const scene = scenes[currentScene];
   const isRTL = language === "he";
   const isThankYou = currentScene >= 12;
-
-  // Determine title/description based on language
   const title = language === "he" ? scene.titleHe : scene.titleEn;
   const description = language === "he" ? scene.descriptionHe : scene.descriptionEn;
   const partLabel = language === "he" ? scene.partHe : scene.part;
@@ -487,7 +521,7 @@ export default function XPresPage() {
           <div style={{
             width: 56, height: 56, border: "2px solid rgba(0,212,255,0.15)",
             borderTopColor: "#00D4FF", borderRadius: "50%",
-            animation: "spin 0.8s linear infinite", margin: "0 auto 24px"
+            animation: "spin 0.8s linear infinite", margin: "0 auto 24px",
           }} />
           <div style={{ fontFamily: "var(--x-pres-font-mono)", fontSize: 11, color: "#00D4FF", letterSpacing: 4 }}>
             LOADING OPERATIONAL BRIEFING
@@ -508,18 +542,16 @@ export default function XPresPage() {
       ref={containerRef}
       className={`x-pres-container ${scrollMode === "continuous" ? "mode-continuous" : ""}`}
     >
-      {/* Scanlines */}
       <div className="x-pres-scanlines" aria-hidden="true" />
 
       {scrollMode === "continuous" ? (
-        /* ─── Continuous Mode: All scenes stacked ─── */
+        /* ─── Continuous Mode ─── */
         <>
           {scenes.map((s, i) => {
             const isActive = i === currentScene;
-            const isRTLScene = language === "he";
             const sTitle = language === "he" ? s.titleHe : s.titleEn;
-            const sDesc = language === "he" ? s.descriptionHe : s.descriptionEn;
-            const sPart = language === "he" ? s.partHe : s.part;
+            const sDesc  = language === "he" ? s.descriptionHe : s.descriptionEn;
+            const sPart  = language === "he" ? s.partHe : s.part;
             return (
               <div
                 key={s.id}
@@ -530,16 +562,11 @@ export default function XPresPage() {
               >
                 <div
                   className="x-pres-frame-bg"
-                  style={{
-                    backgroundImage: `url(${s.image})`,
-                    position: "absolute", inset: 0,
-                    backgroundSize: "cover", backgroundPosition: "center",
-                  }}
+                  style={{ backgroundImage: `url(${s.image})`, position: "absolute", inset: 0, backgroundSize: "cover", backgroundPosition: "center" }}
                 />
                 <div className="x-pres-frame-overlay" style={{ position: "absolute", inset: 0 }} />
-                {/* Content panel */}
                 <div
-                  className={`x-pres-content ${s.panelPosition} ${isRTLScene ? "rtl" : ""}`}
+                  className={`x-pres-content ${s.panelPosition} ${isRTL ? "rtl" : ""}`}
                   style={{ position: "absolute", opacity: isActive ? 1 : 0.4, transition: "opacity 0.5s" }}
                 >
                   {sPart && <div className="x-pres-label" style={{ color: s.accentColor }}>{sPart}</div>}
@@ -568,7 +595,6 @@ export default function XPresPage() {
                     </div>
                   )}
                 </div>
-                {/* Scene number */}
                 <div style={{
                   position: "absolute", bottom: 30, left: 30, zIndex: 80,
                   fontFamily: "var(--x-pres-font-mono)", display: "flex", alignItems: "baseline", gap: 4,
@@ -581,37 +607,34 @@ export default function XPresPage() {
           })}
         </>
       ) : (
-        /* ─── Section / Autoplay Mode: Single scene with transitions ─── */
+        /* ─── GSAP / Autoplay Mode ─── */
         <>
-          {/* Background */}
-          <AnimatePresence mode="sync" custom={navDirection}>
-            <motion.div
-              key={`bg-${currentScene}`}
-              custom={navDirection}
+          {/* Current background — always shows the new scene (underneath) */}
+          <div
+            className="x-pres-frame-bg"
+            style={{ backgroundImage: `url(${scene.image})`, zIndex: 1 }}
+          />
+
+          {/* Previous background — slides out on top, then unmounts */}
+          {prevVisible && (
+            <div
+              ref={prevBgRef}
               className="x-pres-frame-bg"
-              style={{ backgroundImage: `url(${scene.image})` }}
-              variants={{
-                enter: (dir: number) => ({ opacity: 0, y: dir * 80, scale: 1.05 }),
-                center: { opacity: 1, y: 0, scale: 1 },
-                exit: (dir: number) => ({ opacity: 0, y: dir * -50, scale: 0.96 }),
-              }}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={{ duration: 0.85, ease: [0.25, 0.46, 0.45, 0.94] }}
+              style={{ backgroundImage: `url(${prevImage})`, zIndex: 2 }}
             />
-          </AnimatePresence>
-          <div className="x-pres-frame-overlay" />
+          )}
+
+          <div className="x-pres-frame-overlay" style={{ zIndex: 3 }} />
 
           {/* HUD Brackets */}
-          <div className="x-pres-hud">
+          <div className="x-pres-hud" style={{ zIndex: 80 }}>
             <div className="x-pres-hud-bracket x-pres-hud-tl" />
             <div className="x-pres-hud-bracket x-pres-hud-tr" />
             <div className="x-pres-hud-bracket x-pres-hud-bl" />
             <div className="x-pres-hud-bracket x-pres-hud-br" />
           </div>
 
-          {/* HUD Top Label */}
+          {/* HUD Top Label — Framer Motion fade-in only */}
           {scene.hudLabel && (
             <motion.div
               key={`hud-${currentScene}`}
@@ -621,18 +644,18 @@ export default function XPresPage() {
                 letterSpacing: 2.5, color: scene.accentColor, zIndex: 80,
                 textShadow: `0 0 12px ${scene.accentColor}`,
               }}
-              initial={{ opacity: 0, y: -15 }}
+              initial={{ opacity: 0, y: -12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
+              transition={{ delay: 0.45, duration: 0.45 }}
             >
               {scene.hudLabel}
             </motion.div>
           )}
 
-          {/* HUD Bottom-Right: Signal + REC */}
+          {/* Signal + REC */}
           <div style={{ position: "absolute", bottom: 50, right: 50, zIndex: 80, display: "flex", alignItems: "center", gap: 16 }}>
             <SignalStrength sceneId={scene.id} />
-            {(scene.id === 7 || scene.id === 9) && (
+            {(scene.id === 8 || scene.id === 9) && (
               <motion.div
                 className="x-pres-hud-rec"
                 animate={{ opacity: [1, 0.3, 1] }}
@@ -644,63 +667,53 @@ export default function XPresPage() {
             )}
           </div>
 
-          {/* Content Panel */}
-          <AnimatePresence mode="sync" custom={navDirection}>
-            {title && (
-              <motion.div
-                key={`content-${currentScene}-${language}`}
-                custom={navDirection}
-                className={`x-pres-content ${scene.panelPosition} ${isRTL ? "rtl" : ""}`}
-                variants={{
-                  enter: (dir: number) => ({ opacity: 0, y: dir * 40 }),
-                  center: { opacity: 1, y: 0 },
-                  exit: (dir: number) => ({ opacity: 0, y: dir * -28 }),
-                }}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-              >
-                {partLabel && <div className="x-pres-label" style={{ color: scene.accentColor }}>{partLabel}</div>}
-                <h1 className="x-pres-title" style={isThankYou ? { fontSize: "3.5rem", textAlign: "center" } : {}}>
+          {/* Content Panel — GSAP-driven, no key churn */}
+          {title && (
+            <div
+              ref={panelRef}
+              className={`x-pres-content ${scene.panelPosition} ${isRTL ? "rtl" : ""}`}
+            >
+              {partLabel && (
+                <div className="x-pres-label" style={{ color: scene.accentColor }}>{partLabel}</div>
+              )}
+              <h1 className="x-pres-title" style={isThankYou ? { fontSize: "3.5rem", textAlign: "center" } : {}}>
+                {language === "both" ? (
+                  <>
+                    {scene.titleEn}
+                    <div style={{ fontSize: "0.8em", marginTop: 8, direction: "rtl", textAlign: "right" }}>{scene.titleHe}</div>
+                  </>
+                ) : title}
+              </h1>
+              {!isThankYou && (
+                <div className="x-pres-description">
                   {language === "both" ? (
                     <>
-                      <DecodeText text={scene.titleEn} trigger={currentScene} />
-                      <div style={{ fontSize: "0.8em", marginTop: 8, direction: "rtl", textAlign: "right" }}>{scene.titleHe}</div>
+                      <p>{scene.descriptionEn}</p>
+                      <p style={{ direction: "rtl", textAlign: "right", marginTop: 12 }}>{scene.descriptionHe}</p>
                     </>
-                  ) : <DecodeText text={title} trigger={currentScene} />}
-                </h1>
-                {!isThankYou && (
-                  <div className="x-pres-description">
-                    {language === "both" ? (
-                      <>
-                        <p>{scene.descriptionEn}</p>
-                        <p style={{ direction: "rtl", textAlign: "right", marginTop: 12 }}>{scene.descriptionHe}</p>
-                      </>
-                    ) : <p>{description}</p>}
-                  </div>
-                )}
-                {isThankYou && (
-                  <div style={{ textAlign: "center", color: "var(--x-pres-text-muted)", marginTop: 16 }}>
-                    {language === "both" ? (
-                      <>
-                        <p>{scene.descriptionEn}</p>
-                        <p style={{ direction: "rtl", marginTop: 8 }}>{scene.descriptionHe}</p>
-                      </>
-                    ) : <p>{description}</p>}
-                  </div>
-                )}
-                {scene.dataLine && !isThankYou && (
-                  <div className="x-pres-data-row">
-                    <span style={{ color: "var(--x-pres-text-muted)" }}>DATA</span>
-                    <span className="x-pres-data-val" style={{ color: scene.accentColor }}>{scene.dataLine}</span>
-                  </div>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
+                  ) : <p>{description}</p>}
+                </div>
+              )}
+              {isThankYou && (
+                <div style={{ textAlign: "center", color: "var(--x-pres-text-muted)", marginTop: 16 }}>
+                  {language === "both" ? (
+                    <>
+                      <p>{scene.descriptionEn}</p>
+                      <p style={{ direction: "rtl", marginTop: 8 }}>{scene.descriptionHe}</p>
+                    </>
+                  ) : <p>{description}</p>}
+                </div>
+              )}
+              {scene.dataLine && !isThankYou && (
+                <div className="x-pres-data-row">
+                  <span style={{ color: "var(--x-pres-text-muted)" }}>DATA</span>
+                  <span className="x-pres-data-val" style={{ color: scene.accentColor }}>{scene.dataLine}</span>
+                </div>
+              )}
+            </div>
+          )}
 
-          {/* Scene Counter (bottom left) */}
+          {/* Scene Counter */}
           <div style={{
             position: "absolute", bottom: 50, left: 50, zIndex: 80,
             fontFamily: "var(--x-pres-font-mono)", display: "flex", alignItems: "baseline", gap: 4,
@@ -712,8 +725,8 @@ export default function XPresPage() {
             <span style={{ fontSize: 14, color: "#64748B" }}>{String(scenes.length).padStart(2, "0")}</span>
           </div>
 
-          {/* Scroll hint on first scene */}
-          {currentScene === 0 && scrollMode === "section" && (
+          {/* Scroll hint — first scene, gsap mode */}
+          {currentScene === 0 && scrollMode === "gsap" && (
             <motion.div
               style={{
                 position: "absolute", bottom: 50, left: "50%", transform: "translateX(-50%)",
@@ -734,8 +747,8 @@ export default function XPresPage() {
             </motion.div>
           )}
 
-          {/* Glitch overlay for cyber attack scene */}
-          {scene.id === 5 && (
+          {/* Glitch overlay — cyber attack scene */}
+          {scene.id === 6 && (
             <motion.div
               className="x-pres-glitch-overlay"
               style={{ display: "block" }}
@@ -748,7 +761,6 @@ export default function XPresPage() {
 
       {/* ─── Shared Controls (always visible) ─── */}
 
-      {/* Controls — top right */}
       <motion.div
         className="x-pres-controls-wrapper"
         initial={{ opacity: 0, x: 20 }}
@@ -759,11 +771,11 @@ export default function XPresPage() {
         {/* Scroll Mode Pill */}
         <div className="x-pres-control-pill">
           <button
-            className={`x-pres-control-btn ${scrollMode === "section" ? "active" : ""}`}
-            style={scrollMode === "section" ? { background: scene.accentColor } : {}}
-            onClick={() => setScrollMode("section")}
-            data-tooltip="Section"
-            aria-label="Section mode"
+            className={`x-pres-control-btn ${scrollMode === "gsap" ? "active" : ""}`}
+            style={scrollMode === "gsap" ? { background: scene.accentColor } : {}}
+            onClick={() => setScrollMode("gsap")}
+            data-tooltip="GSAP"
+            aria-label="GSAP mode"
           >
             ⬤
           </button>
@@ -779,7 +791,7 @@ export default function XPresPage() {
           <button
             className={`x-pres-control-btn ${scrollMode === "autoplay" ? "active" : ""}`}
             style={scrollMode === "autoplay" ? { background: scene.accentColor } : {}}
-            onClick={() => setScrollMode(scrollMode === "autoplay" ? "section" : "autoplay")}
+            onClick={() => setScrollMode(scrollMode === "autoplay" ? "gsap" : "autoplay")}
             data-tooltip="Auto-play"
             aria-label="Auto-play mode"
           >
@@ -835,9 +847,11 @@ export default function XPresPage() {
             className={`x-pres-nav-dot ${i === currentScene ? "active" : ""}`}
             style={i === currentScene ? { background: scene.accentColor, boxShadow: `0 0 10px ${scene.accentColor}` } : {}}
             onClick={() => {
-              setCurrentScene(i);
               if (scrollMode === "continuous" && sceneRefs.current[i]) {
                 sceneRefs.current[i]!.scrollIntoView({ behavior: "smooth" });
+              } else {
+                const curr = currentSceneRef.current;
+                if (i !== curr) doGsapTransition(i, i > curr ? 1 : -1);
               }
             }}
             aria-label={`Scene ${i + 1}`}
@@ -845,7 +859,7 @@ export default function XPresPage() {
         ))}
       </div>
 
-      {/* Progress bar top */}
+      {/* Progress bar */}
       <div style={{ position: scrollMode === "continuous" ? "fixed" : "absolute", top: 0, left: 0, right: 0, height: 3, background: "rgba(255,255,255,0.05)", zIndex: 90 }}>
         <motion.div
           style={{ height: "100%", background: scene.accentColor, boxShadow: `0 0 8px ${scene.accentColor}`, borderRadius: "0 2px 2px 0" }}

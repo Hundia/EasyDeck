@@ -94,7 +94,7 @@ const scenes: Scene[] = [
     descriptionEn:
       "The commanding officer reviews the intelligence findings. Location confirmed, threat validated. The decision is made: deploy drones to intercept.",
     descriptionHe:
-      "המפקד סוקר את ממצאי המודיעין. המיקום אושר, האיום מאומת. ההחלטה מתקבלת: לשגר כטב״מים ליירוט.",
+      "המפקד סוקר את ממצאי המודיעין. המיקום אושר, האיום מאומת. ההחלטה מתקבלת: לשגר רחפנים ליירוט.",
     image: "/presentations/x_pres/frames/frame-0007.webp",
     video: "/presentations/x_pres/videos/4.mp4",
     accentColor: "#FFB830",
@@ -107,11 +107,11 @@ const scenes: Scene[] = [
     part: "PART 5 — DEPLOYMENT",
     partHe: "חלק 5 — שיגור",
     titleEn: "DRONES DISPATCHED",
-    titleHe: "כטב״מים ממריאים",
+    titleHe: "רחפנים ממריאים",
     descriptionEn:
       "Following the general's order, intelligence drones launch from the ground station. Three assets airborne — heading to the predicted location.",
     descriptionHe:
-      "בעקבות פקודת המפקד, כטב״מי מודיעין ממריאים מתחנת הקרקע. שלושה כלים באוויר — בדרך למיקום החזוי.",
+      "בעקבות פקודת המפקד, רחפני מודיעין ממריאים מתחנת הקרקע. שלושה כלים באוויר — בדרך למיקום החזוי.",
     image: "/presentations/x_pres/frames/frame-0008.webp",
     video: "/presentations/x_pres/videos/5.mp4",
     accentColor: "#00E676",
@@ -128,7 +128,7 @@ const scenes: Scene[] = [
     descriptionEn:
       "Communications with drones are severed. The NSOC detects a coordinated cyber attack — RF jamming combined with network intrusion targeting drone links.",
     descriptionHe:
-      "התקשורת עם הכטב״מים נותקה. מערך הסייבר הלאומי מזהה מתקפת סייבר מתואמת — הפרעת RF בשילוב חדירה לרשת התקשורת.",
+      "התקשורת עם הרחפנים נותקה. מערך הסייבר הלאומי מזהה מתקפת סייבר מתואמת — הפרעת RF בשילוב חדירה לרשת התקשורת.",
     image: "/presentations/x_pres/frames/frame-0009.webp",
     video: "/presentations/x_pres/videos/6.mp4",
     accentColor: "#FF2E3B",
@@ -162,7 +162,7 @@ const scenes: Scene[] = [
     descriptionEn:
       "Drone communications restored. VISINT sensors lock onto the target. Crystal-clear surveillance footage streams to command — confidence 96.4%.",
     descriptionHe:
-      "התקשורת עם הכטב״מים שוחזרה. חיישני VISINT ננעלים על המטרה. צילומי מעקב חדים זורמים לפיקוד — וודאות 96.4%.",
+      "התקשורת עם הרחפנים שוחזרה. חיישני VISINT ננעלים על המטרה. צילומי מעקב חדים זורמים לפיקוד — וודאות 96.4%.",
     image: "/presentations/x_pres/frames/frame-0010.webp",
     video: "/presentations/x_pres/videos/8.mp4",
     accentColor: "#00D4FF",
@@ -179,7 +179,7 @@ const scenes: Scene[] = [
     descriptionEn:
       "Three drones converge in triangular formation. Spotlights illuminate from above. Surrounded, no escape — the target drops to his knees.",
     descriptionHe:
-      "שלושה כטב״מים מתכנסים במשולש. זרקורים מאירים מלמעלה. מוקף, ללא מנוס — המטרה כורעת על ברכיו.",
+      "שלושה רחפנים מתכנסים במשולש. זרקורים מאירים מלמעלה. מוקף, ללא מנוס — המטרה כורעת על ברכיו.",
     image: "/presentations/x_pres/frames/frame-0011.webp",
     video: "/presentations/x_pres/videos/9.mp4",
     accentColor: "#00E676",

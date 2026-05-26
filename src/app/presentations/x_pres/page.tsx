@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect, useCallback, useRef, lazy, Suspense } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { Observer } from "gsap/Observer";
+import VideoBackground, { VideoBackgroundHandle } from "./VideoBackground";
 import "./styles.css";
 
 /* ─── Types ───────────────────────────────────────────────────────── */
@@ -11,6 +12,8 @@ import "./styles.css";
 type ScrollMode = "gsap" | "continuous" | "autoplay";
 type Language = "both" | "en" | "he";
 type PanelPosition = "bottom-left" | "bottom-right" | "bottom-center" | "top-left" | "top-right";
+type MediaMode = "image" | "video";
+type TransitionVersion = "A" | "B" | "C";
 
 interface Scene {
   id: number;
@@ -21,6 +24,7 @@ interface Scene {
   descriptionEn: string;
   descriptionHe: string;
   image: string;
+  video?: string;
   accentColor: string;
   hudLabel: string;
   dataLine?: string;
@@ -41,6 +45,7 @@ const scenes: Scene[] = [
     descriptionHe:
       "גורם עוין בודד נע בשטח סלעי תחת כיסוי של בין ערביים, מתקרב לעמדה צבאית ישראלית. הוא משוכנע שלא זוהה.",
     image: "/presentations/x_pres/frames/frame-0001.webp",
+    video: "/presentations/x_pres/videos/1.mp4",
     accentColor: "#FFB830",
     hudLabel: "SCENE 01 // INFILTRATION DETECTED",
     dataLine: "COORD: 31.2588° N, 34.7997° E | THREAT: UNIDENTIFIED",
@@ -57,6 +62,7 @@ const scenes: Scene[] = [
     descriptionHe:
       "עמוק בתוך חדר מצב מבוצר, מסכים רבים מהבהבים עם התרעת מודיעין חדשה. קצינים מפנים תשומת לבם לאיום.",
     image: "/presentations/x_pres/frames/frame-0002.webp",
+    video: "/presentations/x_pres/videos/2.mp4",
     accentColor: "#00D4FF",
     hudLabel: "SCENE 02 // ALERT TRIGGERED",
     dataLine: "STATUS: C4I ACTIVE | THREAT LEVEL: ELEVATED",
@@ -73,6 +79,7 @@ const scenes: Scene[] = [
     descriptionHe:
       "פלטפורמת מחקר המודיעין קמה לחיים — אנליסטים מצליבים את הגורם העוין מול מאגרי מידע מסווגים. מודלים חזויים מעריכים מיקום ברמת וודאות של 87.3%.",
     image: "/presentations/x_pres/frames/frame-0006.webp",
+    video: "/presentations/x_pres/videos/3.mp4",
     accentColor: "#00D4FF",
     hudLabel: "SCENE 03 // ANALYSIS ACTIVE",
     dataLine: "MATCH CONFIDENCE: 87.3% | DATABASES: 14 CROSS-REFERENCED",
@@ -89,6 +96,7 @@ const scenes: Scene[] = [
     descriptionHe:
       "המפקד סוקר את ממצאי המודיעין. המיקום אושר, האיום מאומת. ההחלטה מתקבלת: לשגר כטב״מים ליירוט.",
     image: "/presentations/x_pres/frames/frame-0007.webp",
+    video: "/presentations/x_pres/videos/4.mp4",
     accentColor: "#FFB830",
     hudLabel: "SCENE 04 // AUTHORITY CONFIRMED",
     dataLine: "OPERATION AUTHORITY: CONFIRMED | BIOMETRIC: VERIFIED",
@@ -105,6 +113,7 @@ const scenes: Scene[] = [
     descriptionHe:
       "בעקבות פקודת המפקד, כטב״מי מודיעין ממריאים מתחנת הקרקע. שלושה כלים באוויר — בדרך למיקום החזוי.",
     image: "/presentations/x_pres/frames/frame-0008.webp",
+    video: "/presentations/x_pres/videos/5.mp4",
     accentColor: "#00E676",
     hudLabel: "SCENE 05 // ASSETS DEPLOYED",
     dataLine: "EAGLE-1: ALT 2400m | EAGLE-2: ALT 1800m | EAGLE-3: STANDBY",
@@ -121,6 +130,7 @@ const scenes: Scene[] = [
     descriptionHe:
       "התקשורת עם הכטב״מים נותקה. מערך הסייבר הלאומי מזהה מתקפת סייבר מתואמת — הפרעת RF בשילוב חדירה לרשת התקשורת.",
     image: "/presentations/x_pres/frames/frame-0009.webp",
+    video: "/presentations/x_pres/videos/6.mp4",
     accentColor: "#FF2E3B",
     hudLabel: "SCENE 06 // BREACH DETECTED",
     dataLine: "⚠ COMM LINK SEVERED | VECTOR: RF JAM + NETWORK INTRUSION",
@@ -137,6 +147,7 @@ const scenes: Scene[] = [
     descriptionHe:
       "מפעיל במערך הסייבר מפעיל בשלווה תרחיש הגנתי מוכן מראש. אמצעי נגד אוטומטיים נפרסים. המתקפה נוטרלה. התקשורת שוחזרה.",
     image: "/presentations/x_pres/frames/frame-0004.webp",
+    video: "/presentations/x_pres/videos/7.mp4",
     accentColor: "#00E676",
     hudLabel: "SCENE 07 // THREAT MITIGATED",
     dataLine: "PLAYBOOK: COMM-SHIELD ALPHA | EFFICACY: 94.7% | STATUS: RESTORED",
@@ -153,6 +164,7 @@ const scenes: Scene[] = [
     descriptionHe:
       "התקשורת עם הכטב״מים שוחזרה. חיישני VISINT ננעלים על המטרה. צילומי מעקב חדים זורמים לפיקוד — וודאות 96.4%.",
     image: "/presentations/x_pres/frames/frame-0010.webp",
+    video: "/presentations/x_pres/videos/8.mp4",
     accentColor: "#00D4FF",
     hudLabel: "SCENE 08 // TRACKING ACTIVE",
     dataLine: "TGT-001 | CONFIDENCE: 96.4% | SPEED: 1.2 m/s | DIST: 3.7km",
@@ -169,6 +181,7 @@ const scenes: Scene[] = [
     descriptionHe:
       "שלושה כטב״מים מתכנסים במשולש. זרקורים מאירים מלמעלה. מוקף, ללא מנוס — המטרה כורעת על ברכיו.",
     image: "/presentations/x_pres/frames/frame-0011.webp",
+    video: "/presentations/x_pres/videos/9.mp4",
     accentColor: "#00E676",
     hudLabel: "SCENE 09 // TARGET NEUTRALIZED",
     dataLine: "FORMATION: TRIANGLE | STATUS: SURRENDERED | THREAT: CONTAINED",
@@ -185,6 +198,7 @@ const scenes: Scene[] = [
     descriptionHe:
       "חזרה למטה — מסגרת ה-AI סוכן-לסוכן מעבדת את כל הנתונים המבצעיים. סוכני AI מרובים משתפים פעולה באופן אוטונומי לחקירת המבצע.",
     image: "/presentations/x_pres/frames/frame-0005.webp",
+    video: "/presentations/x_pres/videos/10.mp4",
     accentColor: "#3D7BFF",
     hudLabel: "SCENE 10 // AGENTS ACTIVE",
     dataLine: "AGENTS: 5 ACTIVE | DATA: 2.4TB PROCESSED | ANOMALIES: 3 FLAGGED",
@@ -201,6 +215,7 @@ const scenes: Scene[] = [
     descriptionHe:
       "החקירה הושלמה. סוכן שיחה מציג ממצאים דרך לוחות מחוונים ויזואליים אינטראקטיביים — צירי זמן, מפות ישויות, ניתוח שורש.",
     image: "/presentations/x_pres/frames/frame-0012.webp",
+    video: "/presentations/x_pres/videos/11.mp4",
     accentColor: "#00D4FF",
     hudLabel: "SCENE 11 // FINDINGS COMPLETE",
     dataLine: "THREAT GROUP: VORTEX-7 | CONFIDENCE: 91% | VECTORS: 2 IDENTIFIED",
@@ -217,6 +232,7 @@ const scenes: Scene[] = [
     descriptionHe:
       "בנוי על ארבעה עמודים — יכולת מעקב, בעלות, יכולת שחזור, אחריותיות. כל החלטה מתועדת. כל פעולה עוקבת מכוונה ועד פריסה. בני האדם נותרים הסמכות.",
     image: "/presentations/x_pres/frames/frame-0013.webp",
+    video: "/presentations/x_pres/videos/12.mp4",
     accentColor: "#FFB830",
     hudLabel: "SCENE 12 // DEVELOPMENT PHILOSOPHY",
     dataLine: "TRACEABILITY | OWNERSHIP | REPRODUCIBILITY | ACCOUNTABILITY",
@@ -231,6 +247,7 @@ const scenes: Scene[] = [
     descriptionEn: "Intelligence Software Department — Securing the Future Through Innovation",
     descriptionHe: "מחלקת תוכנה מודיעינית — מאבטחים את העתיד באמצעות חדשנות",
     image: "/presentations/x_pres/frames/frame-0014.webp",
+    video: "/presentations/x_pres/videos/1.1.mp4",
     accentColor: "#00D4FF",
     hudLabel: "",
     dataLine: "SECURING THE FUTURE THROUGH INNOVATION",
@@ -245,19 +262,26 @@ const scenes: Scene[] = [
     descriptionEn: "",
     descriptionHe: "",
     image: "/presentations/x_pres/frames/frame-0003.webp",
+    video: "/presentations/x_pres/videos/1.mp4",
     accentColor: "#00D4FF",
     hudLabel: "",
     panelPosition: "bottom-center",
   },
 ];
 
+/* ─── Lazy-loaded transition components ──────────────────────────── */
+
+const DeadDropTransition = lazy(() => import("./transitions/DeadDropTransition"));
+const OrbitalTransition  = lazy(() => import("./transitions/OrbitalTransition"));
+const ConsensusTransition = lazy(() => import("./transitions/ConsensusTransition"));
+
 /* ─── Signal Strength Indicator ───────────────────────────────────── */
 
 function SignalStrength({ sceneId }: { sceneId: number }) {
   const getStrength = (id: number) => {
-    if (id === 6) return [3, 2, 0, 0, 0]; // Cyber attack — signal lost
-    if (id === 7) return [8, 6, 5, 3, 2]; // Recovering
-    return [12, 10, 8, 6, 4];             // Full signal
+    if (id === 6) return [3, 2, 0, 0, 0];
+    if (id === 7) return [8, 6, 5, 3, 2];
+    return [12, 10, 8, 6, 4];
   };
   const bars = getStrength(sceneId);
   return (
@@ -273,6 +297,15 @@ function SignalStrength({ sceneId }: { sceneId: number }) {
 
 gsap.registerPlugin(Observer);
 
+/* ─── Active transition state ─────────────────────────────────────── */
+
+interface ActiveTransition {
+  fromIndex: number;
+  toIndex: number;
+  direction: 1 | -1;
+  key: number;
+}
+
 /* ─── Main Component ──────────────────────────────────────────────── */
 
 export default function XPresPage() {
@@ -283,8 +316,13 @@ export default function XPresPage() {
   const [scrollMode, setScrollMode] = useState<ScrollMode>("gsap");
   const [language, setLanguage] = useState<Language>("both");
   const [prevImage, setPrevImage] = useState<string>("");
+  const [prevVideo, setPrevVideo] = useState<string>("");
   const [prevVisible, setPrevVisible] = useState(false);
   const [autoplayProgress, setAutoplayProgress] = useState(0);
+  const [mediaMode, setMediaMode] = useState<MediaMode>("image");
+  const [transitionVersion, setTransitionVersion] = useState<TransitionVersion>("A");
+  const [activeTransition, setActiveTransition] = useState<ActiveTransition | null>(null);
+  const transitionKeyRef = useRef(0);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const autoplayRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -294,6 +332,7 @@ export default function XPresPage() {
   const currentSceneRef = useRef(0);
   const sceneRefs = useRef<(HTMLDivElement | null)[]>([]);
   const gsapObserverRef = useRef<ReturnType<typeof Observer.create> | null>(null);
+  const videoBgRef = useRef<VideoBackgroundHandle | null>(null);
 
   // Language persistence
   useEffect(() => {
@@ -326,46 +365,36 @@ export default function XPresPage() {
     currentSceneRef.current = currentScene;
   }, [currentScene]);
 
-  /* ─── GSAP transition ─────────────────────────────────────────── */
-  // Strategy: old image div sits on top and slides out, new image is already
-  // underneath. Panel exits first (before state update) to avoid content flash.
+  /* ─── Image transition (existing GSAP approach) ───────────────── */
 
-  const doGsapTransition = useCallback((nextIndex: number, dir: number) => {
+  const doImageTransition = useCallback((nextIndex: number, dir: number) => {
     if (isTransitioningRef.current) return;
     if (nextIndex < 0 || nextIndex >= scenes.length) return;
     isTransitioningRef.current = true;
     setIsTransitioning(true);
 
-    // 1. Slide panel out immediately (panel becomes invisible before React re-renders)
     const panelEl = panelRef.current;
     if (panelEl) {
       gsap.killTweensOf(panelEl);
       gsap.to(panelEl, { opacity: 0, y: dir * -28, duration: 0.2, ease: "power2.in" });
     }
 
-    // 2. After panel exit, update state (React re-renders silently behind old bg)
     setTimeout(() => {
       setPrevImage(scenes[currentSceneRef.current].image);
       setPrevVisible(true);
       setCurrentScene(nextIndex);
       currentSceneRef.current = nextIndex;
 
-      // 3. After React paints new state, animate old bg out + new panel in
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           const prevEl = prevBgRef.current;
-
           if (prevEl) {
             gsap.killTweensOf(prevEl);
             gsap.fromTo(
               prevEl,
               { opacity: 1, y: 0, scale: 1 },
               {
-                opacity: 0,
-                y: dir * -110,
-                scale: 0.93,
-                duration: 0.72,
-                ease: "power3.inOut",
+                opacity: 0, y: dir * -110, scale: 0.93, duration: 0.72, ease: "power3.inOut",
                 onComplete: () => {
                   setPrevVisible(false);
                   isTransitioningRef.current = false;
@@ -379,7 +408,6 @@ export default function XPresPage() {
             setIsTransitioning(false);
           }
 
-          // Slide new panel content in
           const newPanel = panelRef.current;
           if (newPanel) {
             gsap.killTweensOf(newPanel);
@@ -391,8 +419,77 @@ export default function XPresPage() {
           }
         });
       });
-    }, 210); // matches panel exit duration + small buffer
+    }, 210);
   }, []);
+
+  /* ─── Video transition dispatcher ────────────────────────────── */
+
+  const doVideoTransition = useCallback((nextIndex: number, dir: number) => {
+    if (isTransitioningRef.current) return;
+    if (nextIndex < 0 || nextIndex >= scenes.length) return;
+    isTransitioningRef.current = true;
+    setIsTransitioning(true);
+
+    // Set previous video to current scene's video
+    const prevSrc = scenes[currentSceneRef.current].video || scenes[currentSceneRef.current].image;
+    setPrevVideo(prevSrc);
+    setPrevVisible(true);
+
+    // Panel exit
+    const panelEl = panelRef.current;
+    if (panelEl) {
+      gsap.killTweensOf(panelEl);
+      gsap.to(panelEl, { opacity: 0, y: dir * -28, duration: 0.2, ease: "power2.in" });
+    }
+
+    // Launch the transition component
+    transitionKeyRef.current += 1;
+    setActiveTransition({
+      fromIndex: currentSceneRef.current,
+      toIndex: nextIndex,
+      direction: dir as 1 | -1,
+      key: transitionKeyRef.current,
+    });
+  }, []);
+
+  /* ─── Video switch callback (called mid-transition) ──────────── */
+
+  const handleVideoSwitch = useCallback(() => {
+    const next = activeTransition?.toIndex ?? currentSceneRef.current;
+    setCurrentScene(next);
+    currentSceneRef.current = next;
+    setPrevVisible(false);
+
+    // Panel enter
+    const newPanel = panelRef.current;
+    if (newPanel) {
+      gsap.killTweensOf(newPanel);
+      gsap.fromTo(
+        newPanel,
+        { opacity: 0, y: 36 },
+        { opacity: 1, y: 0, duration: 0.55, ease: "power3.out", delay: 0.1 }
+      );
+    }
+  }, [activeTransition]);
+
+  /* ─── Transition complete callback ──────────────────────────── */
+
+  const handleTransitionComplete = useCallback(() => {
+    setActiveTransition(null);
+    isTransitioningRef.current = false;
+    setIsTransitioning(false);
+    setPrevVisible(false);
+  }, []);
+
+  /* ─── Unified transition entry ────────────────────────────────── */
+
+  const doGsapTransition = useCallback((nextIndex: number, dir: number) => {
+    if (mediaMode === "video") {
+      doVideoTransition(nextIndex, dir);
+    } else {
+      doImageTransition(nextIndex, dir);
+    }
+  }, [mediaMode, doVideoTransition, doImageTransition]);
 
   // Autoplay
   useEffect(() => {
@@ -415,7 +512,7 @@ export default function XPresPage() {
     }
   }, [scrollMode, doGsapTransition]);
 
-  // GSAP Observer — handles wheel / touch / pointer in gsap mode
+  // GSAP Observer
   useEffect(() => {
     if (scrollMode !== "gsap") {
       gsapObserverRef.current?.kill();
@@ -448,7 +545,7 @@ export default function XPresPage() {
     };
   }, [scrollMode, doGsapTransition]);
 
-  // Continuous mode — IntersectionObserver
+  // Continuous mode
   useEffect(() => {
     if (scrollMode !== "continuous") return;
     document.body.style.overflow = "auto";
@@ -469,7 +566,7 @@ export default function XPresPage() {
     return () => observer.disconnect();
   }, [scrollMode, imagesLoaded]);
 
-  // Autoplay — lock scroll
+  // Autoplay scroll lock
   useEffect(() => {
     if (scrollMode !== "autoplay") return;
     document.body.style.overflow = "hidden";
@@ -512,6 +609,31 @@ export default function XPresPage() {
   const title = language === "he" ? scene.titleHe : scene.titleEn;
   const description = language === "he" ? scene.descriptionHe : scene.descriptionEn;
   const partLabel = language === "he" ? scene.partHe : scene.part;
+
+  /* ─── Get transition component for active transition ─────────── */
+
+  const getTransitionComponent = () => {
+    if (!activeTransition) return null;
+    const from = scenes[activeTransition.fromIndex];
+    const to = scenes[activeTransition.toIndex];
+    const commonProps = {
+      fromScene: from,
+      toScene: to,
+      direction: activeTransition.direction,
+      prevVideoRef: { current: videoBgRef.current?.prevVideoEl ?? null } as React.RefObject<HTMLVideoElement | null>,
+      currentVideoRef: { current: videoBgRef.current?.currentVideoEl ?? null } as React.RefObject<HTMLVideoElement | null>,
+      onVideoSwitch: handleVideoSwitch,
+      onComplete: handleTransitionComplete,
+    };
+
+    return (
+      <Suspense fallback={null}>
+        {transitionVersion === "A" && <DeadDropTransition key={activeTransition.key} {...commonProps} />}
+        {transitionVersion === "B" && <OrbitalTransition  key={activeTransition.key} {...commonProps} />}
+        {transitionVersion === "C" && <ConsensusTransition key={activeTransition.key} {...commonProps} />}
+      </Suspense>
+    );
+  };
 
   /* ─── Loading Screen ───────────────────────────────────────────── */
   if (!imagesLoaded) {
@@ -560,10 +682,18 @@ export default function XPresPage() {
                 className="x-pres-scene"
                 style={{ position: "relative", height: "100vh", width: "100%", overflow: "hidden" }}
               >
-                <div
-                  className="x-pres-frame-bg"
-                  style={{ backgroundImage: `url(${s.image})`, position: "absolute", inset: 0, backgroundSize: "cover", backgroundPosition: "center" }}
-                />
+                {mediaMode === "video" && s.video ? (
+                  <video
+                    src={s.video}
+                    muted autoPlay playsInline loop
+                    style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                ) : (
+                  <div
+                    className="x-pres-frame-bg"
+                    style={{ backgroundImage: `url(${s.image})`, position: "absolute", inset: 0, backgroundSize: "cover", backgroundPosition: "center" }}
+                  />
+                )}
                 <div className="x-pres-frame-overlay" style={{ position: "absolute", inset: 0 }} />
                 <div
                   className={`x-pres-content ${s.panelPosition} ${isRTL ? "rtl" : ""}`}
@@ -609,22 +739,34 @@ export default function XPresPage() {
       ) : (
         /* ─── GSAP / Autoplay Mode ─── */
         <>
-          {/* Current background — always shows the new scene (underneath) */}
-          <div
-            className="x-pres-frame-bg"
-            style={{ backgroundImage: `url(${scene.image})`, zIndex: 1 }}
-          />
-
-          {/* Previous background — slides out on top, then unmounts */}
-          {prevVisible && (
-            <div
-              ref={prevBgRef}
-              className="x-pres-frame-bg"
-              style={{ backgroundImage: `url(${prevImage})`, zIndex: 2 }}
+          {/* ── Background layer ── */}
+          {mediaMode === "video" ? (
+            <VideoBackground
+              ref={videoBgRef}
+              currentSrc={scene.video || scene.image}
+              prevSrc={prevVideo}
+              prevVisible={prevVisible}
             />
+          ) : (
+            <>
+              <div
+                className="x-pres-frame-bg"
+                style={{ backgroundImage: `url(${scene.image})`, zIndex: 1 }}
+              />
+              {prevVisible && (
+                <div
+                  ref={prevBgRef}
+                  className="x-pres-frame-bg"
+                  style={{ backgroundImage: `url(${prevImage})`, zIndex: 2 }}
+                />
+              )}
+            </>
           )}
 
           <div className="x-pres-frame-overlay" style={{ zIndex: 3 }} />
+
+          {/* ── Active video transition overlay ── */}
+          {mediaMode === "video" && getTransitionComponent()}
 
           {/* HUD Brackets */}
           <div className="x-pres-hud" style={{ zIndex: 80 }}>
@@ -634,7 +776,7 @@ export default function XPresPage() {
             <div className="x-pres-hud-bracket x-pres-hud-br" />
           </div>
 
-          {/* HUD Top Label — Framer Motion fade-in only */}
+          {/* HUD Top Label */}
           {scene.hudLabel && (
             <motion.div
               key={`hud-${currentScene}`}
@@ -667,7 +809,7 @@ export default function XPresPage() {
             )}
           </div>
 
-          {/* Content Panel — GSAP-driven, no key churn */}
+          {/* Content Panel */}
           {title && (
             <div
               ref={panelRef}
@@ -725,7 +867,7 @@ export default function XPresPage() {
             <span style={{ fontSize: 14, color: "#64748B" }}>{String(scenes.length).padStart(2, "0")}</span>
           </div>
 
-          {/* Scroll hint — first scene, gsap mode */}
+          {/* Scroll hint */}
           {currentScene === 0 && scrollMode === "gsap" && (
             <motion.div
               style={{
@@ -759,7 +901,7 @@ export default function XPresPage() {
         </>
       )}
 
-      {/* ─── Shared Controls (always visible) ─── */}
+      {/* ─── Shared Controls ─── */}
 
       <motion.div
         className="x-pres-controls-wrapper"
@@ -798,10 +940,7 @@ export default function XPresPage() {
             {scrollMode === "autoplay" ? "⏸" : "▶"}
             {scrollMode === "autoplay" && (
               <svg className="x-pres-autoplay-ring" viewBox="0 0 36 36">
-                <circle
-                  cx="18" cy="18" r="16"
-                  style={{ strokeDashoffset: 100 - autoplayProgress }}
-                />
+                <circle cx="18" cy="18" r="16" style={{ strokeDashoffset: 100 - autoplayProgress }} />
               </svg>
             )}
           </button>
@@ -837,6 +976,54 @@ export default function XPresPage() {
             עב
           </button>
         </div>
+
+        {/* Media Mode Pill — 🖼 image / 🎬 video */}
+        <div className="x-pres-control-pill">
+          <button
+            className={`x-pres-control-btn ${mediaMode === "image" ? "active" : ""}`}
+            style={mediaMode === "image" ? { background: scene.accentColor } : {}}
+            onClick={() => setMediaMode("image")}
+            data-tooltip="Image mode"
+            aria-label="Image mode"
+          >
+            🖼
+          </button>
+          <button
+            className={`x-pres-control-btn ${mediaMode === "video" ? "active" : ""}`}
+            style={mediaMode === "video" ? { background: scene.accentColor } : {}}
+            onClick={() => setMediaMode("video")}
+            data-tooltip="Video mode"
+            aria-label="Video mode"
+          >
+            🎬
+          </button>
+        </div>
+
+        {/* Transition Version Pill — only in video mode */}
+        <AnimatePresence>
+          {mediaMode === "video" && (
+            <motion.div
+              className="x-pres-version-pill"
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
+              transition={{ duration: 0.25 }}
+            >
+              {(["A", "B", "C"] as TransitionVersion[]).map((v) => (
+                <button
+                  key={v}
+                  className={`x-pres-version-btn ${transitionVersion === v ? "active" : ""}`}
+                  style={transitionVersion === v ? { background: scene.accentColor, color: "#0D1117" } : {}}
+                  onClick={() => setTransitionVersion(v)}
+                  aria-label={`Transition version ${v}`}
+                  data-tooltip={v === "A" ? "DEAD DROP" : v === "B" ? "ORBITAL" : "CONSENSUS"}
+                >
+                  {v}
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
 
       {/* Navigation Dots */}

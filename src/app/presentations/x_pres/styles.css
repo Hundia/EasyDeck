@@ -384,3 +384,93 @@ body {
     font-size: 1.75rem;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   VIDEO MODE
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.x-pres-video-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TRANSITION OVERLAYS — shared between versions
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Dead Drop — scan beam */
+.x-pres-scanbeam {
+  position: fixed;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #00D4FF;
+  box-shadow: 0 0 24px 4px #00D4FF, 0 0 80px 12px rgba(0, 212, 255, 0.4);
+  will-change: transform;
+  pointer-events: none;
+}
+
+/* Consensus Lock — canvas overlay */
+.x-pres-transition-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Orbital Descent — 3D stage wrapper */
+.x-pres-orbital-stage {
+  position: fixed;
+  inset: 0;
+  perspective: 1200px;
+  perspective-origin: 50% 45%;
+  pointer-events: none;
+}
+
+.x-pres-scene-3d {
+  transform-style: preserve-3d;
+  will-change: transform, opacity, filter;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CONTROL PILLS — media + version selectors
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.x-pres-version-pill {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  background: rgba(13, 17, 23, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 6px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.x-pres-version-btn {
+  background: none;
+  border: none;
+  color: var(--x-pres-text-muted);
+  font-family: var(--x-pres-font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.x-pres-version-btn:hover {
+  color: var(--x-pres-text-bright);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.x-pres-version-btn.active {
+  color: #0D1117;
+  font-weight: 700;
+}

@@ -263,10 +263,11 @@ body {
 
 /* Continuous Scroll Mode */
 .x-pres-container.mode-continuous {
+  position: relative !important;
   height: auto !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
-  position: relative !important;
+  inset: auto !important;
 }
 
 .x-pres-container.mode-continuous .x-pres-scene {

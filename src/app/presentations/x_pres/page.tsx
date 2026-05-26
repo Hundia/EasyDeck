@@ -74,7 +74,7 @@ const scenes: Scene[] = [
     accentColor: "#00D4FF",
     hudLabel: "SCENE 03 // ANALYSIS ACTIVE",
     dataLine: "MATCH CONFIDENCE: 87.3% | DATABASES: 14 CROSS-REFERENCED",
-    panelPosition: "bottom-right",
+    panelPosition: "bottom-left",
   },
   {
     id: 4,
@@ -106,7 +106,7 @@ const scenes: Scene[] = [
     accentColor: "#00E676",
     hudLabel: "SCENE 05 // ASSETS DEPLOYED",
     dataLine: "EAGLE-1: ALT 2400m | EAGLE-2: ALT 1800m | EAGLE-3: STANDBY",
-    panelPosition: "bottom-center",
+    panelPosition: "bottom-left",
   },
   {
     id: 6,
@@ -138,7 +138,7 @@ const scenes: Scene[] = [
     accentColor: "#00E676",
     hudLabel: "SCENE 07 // THREAT MITIGATED",
     dataLine: "PLAYBOOK: COMM-SHIELD ALPHA | EFFICACY: 94.7% | STATUS: RESTORED",
-    panelPosition: "bottom-left",
+    panelPosition: "bottom-right",
   },
   {
     id: 8,
@@ -170,7 +170,7 @@ const scenes: Scene[] = [
     accentColor: "#00E676",
     hudLabel: "SCENE 09 // TARGET NEUTRALIZED",
     dataLine: "FORMATION: TRIANGLE | STATUS: SURRENDERED | THREAT: CONTAINED",
-    panelPosition: "bottom-center",
+    panelPosition: "bottom-left",
   },
   {
     id: 10,
@@ -186,7 +186,7 @@ const scenes: Scene[] = [
     accentColor: "#3D7BFF",
     hudLabel: "SCENE 10 // AGENTS ACTIVE",
     dataLine: "AGENTS: 5 ACTIVE | DATA: 2.4TB PROCESSED | ANOMALIES: 3 FLAGGED",
-    panelPosition: "bottom-left",
+    panelPosition: "bottom-right",
   },
   {
     id: 11,
@@ -202,7 +202,7 @@ const scenes: Scene[] = [
     accentColor: "#00D4FF",
     hudLabel: "SCENE 11 // FINDINGS COMPLETE",
     dataLine: "THREAT GROUP: VORTEX-7 | CONFIDENCE: 91% | VECTORS: 2 IDENTIFIED",
-    panelPosition: "bottom-right",
+    panelPosition: "bottom-left",
   },
   {
     id: 12,
@@ -218,7 +218,7 @@ const scenes: Scene[] = [
     accentColor: "#FFB830",
     hudLabel: "SCENE 12 // DEVELOPMENT PHILOSOPHY",
     dataLine: "TRACEABILITY | OWNERSHIP | REPRODUCIBILITY | ACCOUNTABILITY",
-    panelPosition: "bottom-center",
+    panelPosition: "bottom-left",
   },
   {
     id: 13,
@@ -315,6 +315,7 @@ export default function XPresPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const autoplayRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [autoplayProgress, setAutoplayProgress] = useState(0);
+  const [navDirection, setNavDirection] = useState(0);
   const sceneRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   // Load language preference from localStorage
@@ -376,6 +377,7 @@ export default function XPresPage() {
       if (now - lastScrollTime.current < 700) return;
       lastScrollTime.current = now;
 
+      setNavDirection(direction === "next" ? 1 : -1);
       setIsTransitioning(true);
       if (direction === "next" && currentScene < scenes.length - 1) {
         setCurrentScene((s) => s + 1);
@@ -390,8 +392,8 @@ export default function XPresPage() {
   // IntersectionObserver for continuous mode — tracks which scene is in view
   useEffect(() => {
     if (scrollMode !== "continuous") return;
-    document.body.style.overflow = "";
-    document.documentElement.style.overflow = "";
+    document.body.style.overflow = "auto";
+    document.documentElement.style.overflow = "auto";
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -582,15 +584,21 @@ export default function XPresPage() {
         /* ─── Section / Autoplay Mode: Single scene with transitions ─── */
         <>
           {/* Background */}
-          <AnimatePresence mode="sync">
+          <AnimatePresence mode="sync" custom={navDirection}>
             <motion.div
               key={`bg-${currentScene}`}
+              custom={navDirection}
               className="x-pres-frame-bg"
               style={{ backgroundImage: `url(${scene.image})` }}
-              initial={{ opacity: 0, scale: 1.08 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.96 }}
-              transition={{ duration: 1, ease: [0.25, 0.46, 0.45, 0.94] }}
+              variants={{
+                enter: (dir: number) => ({ opacity: 0, y: dir * 80, scale: 1.05 }),
+                center: { opacity: 1, y: 0, scale: 1 },
+                exit: (dir: number) => ({ opacity: 0, y: dir * -50, scale: 0.96 }),
+              }}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.85, ease: [0.25, 0.46, 0.45, 0.94] }}
             />
           </AnimatePresence>
           <div className="x-pres-frame-overlay" />
@@ -637,15 +645,21 @@ export default function XPresPage() {
           </div>
 
           {/* Content Panel */}
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="sync" custom={navDirection}>
             {title && (
               <motion.div
                 key={`content-${currentScene}-${language}`}
+                custom={navDirection}
                 className={`x-pres-content ${scene.panelPosition} ${isRTL ? "rtl" : ""}`}
-                initial={{ opacity: 0, y: 30, filter: "blur(6px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                exit={{ opacity: 0, y: -20, filter: "blur(6px)" }}
-                transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                variants={{
+                  enter: (dir: number) => ({ opacity: 0, y: dir * 40 }),
+                  center: { opacity: 1, y: 0 },
+                  exit: (dir: number) => ({ opacity: 0, y: dir * -28 }),
+                }}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
               >
                 {partLabel && <div className="x-pres-label" style={{ color: scene.accentColor }}>{partLabel}</div>}
                 <h1 className="x-pres-title" style={isThankYou ? { fontSize: "3.5rem", textAlign: "center" } : {}}>

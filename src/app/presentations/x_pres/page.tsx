@@ -252,7 +252,7 @@ const scenes: Scene[] = [
     panelPosition: "bottom-left",
   },
   {
-    id: 13,
+    id: 14,
     part: "",
     partHe: "",
     titleEn: "THANK YOU",
@@ -264,6 +264,22 @@ const scenes: Scene[] = [
     accentColor: "#00D4FF",
     hudLabel: "",
     panelPosition: "bottom-center",
+  },
+  {
+    id: 15,
+    part: "TECH STACK",
+    partHe: "סביבה טכנולוגית",
+    titleEn: "TECH STACK",
+    titleHe: "Tech Stack",
+    descriptionEn:
+      "Our technology foundation — from cloud infrastructure and AI frameworks to real-time data pipelines and edge computing.",
+    descriptionHe:
+      "התשתית הטכנולוגית שלנו — מתשתיות ענן ומסגרות בינה מלאכותית ועד צינורות נתונים בזמן אמת ומחשוב קצה.",
+    image: "/presentations/x_pres/frames/frame-techstack.webp",
+    accentColor: "#3D7BFF",
+    hudLabel: "SCENE 13 // TECHNOLOGY FOUNDATION",
+    dataLine: "CLOUD | AI/ML | REAL-TIME | EDGE COMPUTING",
+    panelPosition: "bottom-left",
   },
 ];
 
@@ -762,7 +778,7 @@ export default function XPresPage() {
   const scene = scenes[currentScene];
   const isRTL = language === "he";
   const isOpeningSlide = currentScene === 0;
-  const isThankYou = currentScene === scenes.length - 1;
+  const isThankYou = scene.titleEn === "THANK YOU";
   const title = language === "he" ? scene.titleHe : scene.titleEn;
   const description = language === "he" ? scene.descriptionHe : scene.descriptionEn;
   const partLabel = language === "he" ? scene.partHe : scene.part;
@@ -869,7 +885,7 @@ export default function XPresPage() {
                       )}
                     </div>
                   </div>
-                ) : i === scenes.length - 1 ? (
+                ) : s.titleEn === "THANK YOU" ? (
                   /* Thank You grid in continuous mode */
                   <ThankYouGrid mediaMode={mediaMode} language={language} />
                 ) : (
@@ -904,13 +920,19 @@ export default function XPresPage() {
                   )}
                 </div>
                 )}
+                {i > 0 && s.titleEn !== "THANK YOU" && (() => {
+                  const contentSlides = scenes.filter((sc, idx) => idx > 0 && sc.titleEn !== "THANK YOU");
+                  const displayNum = contentSlides.findIndex(sc => sc.id === s.id) + 1;
+                  return (
                 <div style={{
                   position: "absolute", bottom: 30, left: 30, zIndex: 80,
                   fontFamily: "var(--x-pres-font-mono)", display: "flex", alignItems: "baseline", gap: 4,
                 }}>
-                  <span style={{ fontSize: 24, fontWeight: 700, color: s.accentColor }}>{String(i + 1).padStart(2, "0")}</span>
-                  <span style={{ fontSize: 14, color: "#64748B" }}>/{String(scenes.length).padStart(2, "0")}</span>
+                  <span style={{ fontSize: 24, fontWeight: 700, color: s.accentColor }}>{String(displayNum).padStart(2, "0")}</span>
+                  <span style={{ fontSize: 14, color: "#64748B" }}>/{String(contentSlides.length).padStart(2, "0")}</span>
                 </div>
+                  );
+                })()}
               </div>
             );
           })}
@@ -1066,16 +1088,22 @@ export default function XPresPage() {
           )}
 
           {/* Scene Counter */}
+          {!isOpeningSlide && !isThankYou && (() => {
+            const contentSlides = scenes.filter((s, idx) => idx > 0 && s.titleEn !== "THANK YOU");
+            const displayNum = contentSlides.findIndex(s => s.id === scene.id) + 1;
+            return (
           <div style={{
             position: "absolute", bottom: 50, left: 50, zIndex: 80,
             fontFamily: "var(--x-pres-font-mono)", display: "flex", alignItems: "baseline", gap: 4,
           }}>
             <span style={{ fontSize: 32, fontWeight: 700, color: scene.accentColor, textShadow: `0 0 12px ${scene.accentColor}` }}>
-              {String(currentScene + 1).padStart(2, "0")}
+              {String(displayNum).padStart(2, "0")}
             </span>
             <span style={{ fontSize: 18, color: "#64748B" }}>/</span>
-            <span style={{ fontSize: 14, color: "#64748B" }}>{String(scenes.length).padStart(2, "0")}</span>
+            <span style={{ fontSize: 14, color: "#64748B" }}>{String(contentSlides.length).padStart(2, "0")}</span>
           </div>
+            );
+          })()}
 
           {/* Scroll hint */}
           {currentScene === 0 && scrollMode === "gsap" && (

@@ -1,12 +1,19 @@
 ---
 name: deploy
-description: "Build the static export and push to GitHub Pages. Use when the user says 'deploy', 'push to GitHub Pages', 'ship it', or '/deploy'."
+description: "Build the static export and deploy to hundia.casa. Use when the user says 'deploy', 'ship it', or '/deploy'. This presentation is PRIVATE — never publish to GitHub Pages."
 argument-hint: "[--skip-tests to bypass test gate]"
 ---
 
-# Deploy to GitHub Pages
+# Deploy to hundia.casa
 
-Builds the Next.js static export and pushes `master` to trigger the GitHub Actions deploy workflow.
+Builds the Next.js static export and deploys to the private domain.
+
+## ⚠️ IMPORTANT: This is a PRIVATE presentation
+
+- **NEVER** deploy to GitHub Pages
+- **NEVER** push the `out/` folder to a public location
+- The only authorized deployment target is: **https://hundia.casa/presentations/x_pres**
+- A separate repo will be created later for the public deployment
 
 ## Pre-flight Checks
 
@@ -22,12 +29,14 @@ NEXT_OUTPUT=export npm run build    # Static export to out/
 
 ## Build Notes
 
-- `basePath: '/EasyDeck'` is applied automatically when `NEXT_OUTPUT=export`
+- No `basePath` needed — the site is served at root of the domain
 - Images must use relative paths or Next.js `<Image>` with `unoptimized: true`
 - No `useSearchParams` without a `<Suspense>` boundary (breaks static export)
 - Clean `.next/` if you see stale export errors: `rm -rf .next`
 
-## Push
+## Deploy
+
+After build, push to master. Deployment to hundia.casa is handled externally.
 
 ```bash
 git add <changed files>
@@ -35,24 +44,15 @@ git commit -m "feat: <description>"
 git push origin master
 ```
 
-The GitHub Actions workflow at `.github/workflows/deploy.yml` triggers on push to `master`:
-1. `npm ci`
-2. `NEXT_OUTPUT=export npm run build`
-3. Upload `out/` → deploy to GitHub Pages
+## Live URL
 
-## Watch the Deploy
-
-```
-https://github.com/Hundia/EasyDeck/actions
-```
-
-Live URL after deploy: **https://hundia.github.io/EasyDeck/**
+**https://hundia.casa/presentations/x_pres**
 
 ## Troubleshooting
 
 | Symptom | Fix |
 |---------|-----|
 | `rename … 500.html` error | `rm -rf .next` then rebuild |
-| Asset 404 on GitHub Pages | Check `basePath: '/EasyDeck'` in `next.config.ts` |
+| Asset 404 | Ensure no `basePath` is set in `next.config.ts` |
 | `useSearchParams` without Suspense | Wrap component in `<Suspense>` |
 | Framer Motion SSR error | Add `"use client"` to the component file |

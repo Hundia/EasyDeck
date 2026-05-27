@@ -129,7 +129,7 @@ git push origin master
 ```
 
 **Watch deploy:** https://github.com/Hundia/EasyDeck/actions  
-**Live URL:** https://hundia.github.io/EasyDeck/presentations/x_pres
+**Live URL:** https://hundia.casa/presentations/x_pres
 
 ---
 
@@ -150,7 +150,7 @@ git push origin master
 ## Quick Verification After Deploy
 
 ```
-1. Open https://hundia.github.io/EasyDeck/presentations/x_pres
+1. Open https://hundia.casa/presentations/x_pres
 2. Confirm image mode loads (scene 1, gold accent, static frame background)
 3. Click 🎬 → background should switch to looping video
 4. Click A → navigate scenes → scan beam + RGB split should fire

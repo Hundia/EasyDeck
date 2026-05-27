@@ -280,7 +280,7 @@ const { story } = createPresentation({
 ## Documentation
 
 - Full docs: `docs/` directory
-- Live viewer: https://hundia.github.io/EasyDeck/viewer
+- Live viewer: https://hundia.casa/viewer
 - API reference: `docs/API.md`
 - Getting started: `docs/GETTING_STARTED.md`
 

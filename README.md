@@ -4,7 +4,6 @@
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Tests](https://img.shields.io/badge/tests-235%20passing-brightgreen)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)
-[![Live Docs](https://img.shields.io/badge/docs-live-brightgreen)](https://hundia.github.io/EasyDeck/)
 
 **A scrollytelling presentation engine built with React, GSAP, Lenis & canvas-based image sequences.**
 

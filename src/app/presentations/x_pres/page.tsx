@@ -35,6 +35,20 @@ interface Scene {
 
 const scenes: Scene[] = [
   {
+    id: 0,
+    part: "",
+    partHe: "",
+    titleEn: "Intelligence Department",
+    titleHe: "מערכות מודיעין",
+    descriptionEn: "",
+    descriptionHe: "",
+    image: "/presentations/x_pres/frames/frame-opening.webp",
+    video: "/presentations/x_pres/videos/opening.mp4",
+    accentColor: "#00D4FF",
+    hudLabel: "",
+    panelPosition: "bottom-center",
+  },
+  {
     id: 1,
     part: "PART 1 — THE THREAT",
     partHe: "חלק 1 — האיום",
@@ -333,6 +347,10 @@ export default function XPresPage() {
   const sceneRefs = useRef<(HTMLDivElement | null)[]>([]);
   const gsapObserverRef = useRef<ReturnType<typeof Observer.create> | null>(null);
   const videoBgRef = useRef<VideoBackgroundHandle | null>(null);
+  const openingLineRef = useRef<HTMLDivElement>(null);
+  const openingEnRef = useRef<HTMLHeadingElement>(null);
+  const openingHeRef = useRef<HTMLParagraphElement>(null);
+  const openingPlayedRef = useRef(false);
 
   // Language persistence
   useEffect(() => {
@@ -605,9 +623,47 @@ export default function XPresPage() {
     return () => window.removeEventListener("keydown", handler);
   }, [scrollMode, doGsapTransition]);
 
+  /* ─── Opening slide GSAP animation ──────────────────────────────── */
+
+  useEffect(() => {
+    if (currentScene !== 0 || openingPlayedRef.current) return;
+    if (!openingEnRef.current || !openingHeRef.current || !openingLineRef.current) return;
+
+    const reduce = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) {
+      gsap.set([openingEnRef.current, openingHeRef.current, openingLineRef.current], { opacity: 1 });
+      gsap.set(openingLineRef.current, { width: 80 });
+      openingPlayedRef.current = true;
+      return;
+    }
+
+    const tl = gsap.timeline({
+      delay: 0.4,
+      onComplete: () => { openingPlayedRef.current = true; },
+    });
+
+    tl.fromTo(openingLineRef.current,
+      { opacity: 0, width: 0 },
+      { opacity: 1, width: 80, duration: 0.6, ease: "power2.out" }
+    )
+    .fromTo(openingEnRef.current,
+      { opacity: 0, y: 28, scale: 1.02, filter: "blur(10px)", clipPath: "inset(0 0 100% 0)" },
+      { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", clipPath: "inset(0 0 0% 0)", duration: 1, ease: "power3.out" },
+      0.15
+    )
+    .fromTo(openingHeRef.current,
+      { opacity: 0, y: 20, filter: "blur(8px)", clipPath: "inset(0 0 100% 0)" },
+      { opacity: 1, y: 0, filter: "blur(0px)", clipPath: "inset(0 0 0% 0)", duration: 0.9, ease: "power2.out" },
+      0.35
+    );
+
+    return () => { tl.kill(); };
+  }, [currentScene, imagesLoaded]);
+
   const scene = scenes[currentScene];
   const isRTL = language === "he";
-  const isThankYou = currentScene >= 12;
+  const isOpeningSlide = currentScene === 0;
+  const isThankYou = currentScene >= 13;
   const title = language === "he" ? scene.titleHe : scene.titleEn;
   const description = language === "he" ? scene.descriptionHe : scene.descriptionEn;
   const partLabel = language === "he" ? scene.partHe : scene.part;
@@ -697,6 +753,21 @@ export default function XPresPage() {
                   />
                 )}
                 <div className="x-pres-frame-overlay" style={{ position: "absolute", inset: 0 }} />
+                {i === 0 ? (
+                  /* Opening slide in continuous mode */
+                  <div className="x-pres-opening" style={{ position: "absolute" }}>
+                    <div className="x-pres-opening-veil" />
+                    <div className="x-pres-opening-content">
+                      <div className="x-pres-opening-line" style={{ opacity: 1, width: 80 }} />
+                      <h1 className="x-pres-opening-title-en" style={{ opacity: 1 }}>
+                        Intelligence Department
+                      </h1>
+                      <p className="x-pres-opening-title-he" style={{ opacity: 1 }}>
+                        מערכות מודיעין
+                      </p>
+                    </div>
+                  </div>
+                ) : (
                 <div
                   className={`x-pres-content ${s.panelPosition} ${isRTL ? "rtl" : ""}`}
                   style={{ position: "absolute", opacity: isActive ? 1 : 0.4, transition: "opacity 0.5s" }}
@@ -727,6 +798,7 @@ export default function XPresPage() {
                     </div>
                   )}
                 </div>
+                )}
                 <div style={{
                   position: "absolute", bottom: 30, left: 30, zIndex: 80,
                   fontFamily: "var(--x-pres-font-mono)", display: "flex", alignItems: "baseline", gap: 4,
@@ -772,16 +844,34 @@ export default function XPresPage() {
 
           <div className="x-pres-frame-overlay" style={{ zIndex: 3 }} />
 
+          {/* ── Opening Slide Overlay ── */}
+          {isOpeningSlide && (
+            <div className="x-pres-opening">
+              <div className="x-pres-opening-veil" />
+              <div className="x-pres-opening-content">
+                <div ref={openingLineRef} className="x-pres-opening-line" />
+                <h1 ref={openingEnRef} className="x-pres-opening-title-en">
+                  Intelligence Department
+                </h1>
+                <p ref={openingHeRef} className="x-pres-opening-title-he">
+                  מערכות מודיעין
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* ── Active video transition overlay ── */}
           {mediaMode === "video" && getTransitionComponent()}
 
           {/* HUD Brackets */}
+          {!isOpeningSlide && (
           <div className="x-pres-hud" style={{ zIndex: 80 }}>
             <div className="x-pres-hud-bracket x-pres-hud-tl" />
             <div className="x-pres-hud-bracket x-pres-hud-tr" />
             <div className="x-pres-hud-bracket x-pres-hud-bl" />
             <div className="x-pres-hud-bracket x-pres-hud-br" />
           </div>
+          )}
 
           {/* HUD Top Label */}
           {scene.hudLabel && (
@@ -817,7 +907,7 @@ export default function XPresPage() {
           </div>
 
           {/* Content Panel */}
-          {title && (
+          {title && !isOpeningSlide && (
             <div
               ref={panelRef}
               className={`x-pres-content ${scene.panelPosition} ${isRTL ? "rtl" : ""}`}

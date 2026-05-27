@@ -257,32 +257,47 @@ const scenes: Scene[] = [
     partHe: "",
     titleEn: "THANK YOU",
     titleHe: "תודה",
-    descriptionEn: "Intelligence Software Department — Securing the Future Through Innovation",
-    descriptionHe: "מחלקת תוכנה מודיעינית — מאבטחים את העתיד באמצעות חדשנות",
-    image: "/presentations/x_pres/frames/frame-0014.webp",
-    video: "/presentations/x_pres/videos/1.1.mp4",
-    accentColor: "#00D4FF",
-    hudLabel: "",
-    dataLine: "SECURING THE FUTURE THROUGH INNOVATION",
-    panelPosition: "bottom-center",
-  },
-  {
-    id: 14,
-    part: "",
-    partHe: "",
-    titleEn: "",
-    titleHe: "",
     descriptionEn: "",
     descriptionHe: "",
-    image: "/presentations/x_pres/frames/frame-0003.webp",
-    video: "/presentations/x_pres/videos/1.mp4",
+    image: "/presentations/x_pres/frames/frame-0014.webp",
+    video: "/presentations/x_pres/videos/1.1.mp4",
     accentColor: "#00D4FF",
     hudLabel: "",
     panelPosition: "bottom-center",
   },
 ];
 
-/* ─── Lazy-loaded transition components ──────────────────────────── */
+/* ─── Thank-You Grid — all scene videos in a surrounding grid ───── */
+
+const thankYouGridVideos = [
+  "/presentations/x_pres/videos/opening.mp4",
+  "/presentations/x_pres/videos/1.mp4",
+  "/presentations/x_pres/videos/2.mp4",
+  "/presentations/x_pres/videos/3.mp4",
+  "/presentations/x_pres/videos/4.mp4",
+  "/presentations/x_pres/videos/5.mp4",
+  "/presentations/x_pres/videos/6.mp4",
+  "/presentations/x_pres/videos/7.mp4",
+  "/presentations/x_pres/videos/8.mp4",
+  "/presentations/x_pres/videos/9.mp4",
+  "/presentations/x_pres/videos/10.mp4",
+  "/presentations/x_pres/videos/11.mp4",
+];
+
+const thankYouGridImages = [
+  "/presentations/x_pres/frames/frame-opening.webp",
+  "/presentations/x_pres/frames/frame-0001.webp",
+  "/presentations/x_pres/frames/frame-0002.webp",
+  "/presentations/x_pres/frames/frame-0006.webp",
+  "/presentations/x_pres/frames/frame-0007.webp",
+  "/presentations/x_pres/frames/frame-0008.webp",
+  "/presentations/x_pres/frames/frame-0009.webp",
+  "/presentations/x_pres/frames/frame-0004.webp",
+  "/presentations/x_pres/frames/frame-0010.webp",
+  "/presentations/x_pres/frames/frame-0011.webp",
+  "/presentations/x_pres/frames/frame-0005.webp",
+  "/presentations/x_pres/frames/frame-0012.webp",
+];
 
 const DeadDropTransition = lazy(() => import("./transitions/DeadDropTransition"));
 const OrbitalTransition  = lazy(() => import("./transitions/OrbitalTransition"));
@@ -302,6 +317,65 @@ function SignalStrength({ sceneId }: { sceneId: number }) {
       {bars.map((h, i) => (
         <div key={i} className="x-pres-hud-signal-bar" style={{ height: `${h}px` }} />
       ))}
+    </div>
+  );
+}
+
+/* ─── Thank You Grid Component ────────────────────────────────────── */
+
+function ThankYouGrid({ mediaMode, language }: { mediaMode: MediaMode; language: Language }) {
+  const titleText = language === "he" ? "תודה" : "Thank You";
+  const isHebrew = language === "he";
+
+  // 4x4 grid: positions 0-15, center 4 cells (5,6,9,10) are the title
+  // That leaves 12 surrounding cells for videos
+  const centerCells = new Set([5, 6, 9, 10]);
+  let videoIdx = 0;
+
+  return (
+    <div className="x-pres-thankyou-grid">
+      {Array.from({ length: 16 }, (_, i) => {
+        if (centerCells.has(i)) {
+          // Render center "Thank You" box only once (at position 5)
+          if (i === 5) {
+            return (
+              <div key={i} className="x-pres-thankyou-center" style={{ gridColumn: "2 / 4", gridRow: "2 / 4" }}>
+                <div className="x-pres-thankyou-center-inner">
+                  <h1
+                    className="x-pres-thankyou-title"
+                    style={isHebrew ? { fontFamily: '"Heebo", sans-serif', direction: "rtl" } : { fontFamily: '"Quantico", sans-serif' }}
+                  >
+                    {titleText}
+                  </h1>
+                </div>
+              </div>
+            );
+          }
+          return null; // Skip other center cells (merged)
+        }
+        const idx = videoIdx++;
+        const videoSrc = thankYouGridVideos[idx % thankYouGridVideos.length];
+        const imageSrc = thankYouGridImages[idx % thankYouGridImages.length];
+        return (
+          <div key={i} className="x-pres-thankyou-cell">
+            {mediaMode === "video" ? (
+              <video
+                src={videoSrc}
+                muted
+                autoPlay
+                playsInline
+                loop
+                className="x-pres-thankyou-cell-media"
+              />
+            ) : (
+              <div
+                className="x-pres-thankyou-cell-media"
+                style={{ backgroundImage: `url(${imageSrc})`, backgroundSize: "cover", backgroundPosition: "center" }}
+              />
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -687,7 +761,7 @@ export default function XPresPage() {
   const scene = scenes[currentScene];
   const isRTL = language === "he";
   const isOpeningSlide = currentScene === 0;
-  const isThankYou = currentScene >= 13;
+  const isThankYou = currentScene === scenes.length - 1;
   const title = language === "he" ? scene.titleHe : scene.titleEn;
   const description = language === "he" ? scene.descriptionHe : scene.descriptionEn;
   const partLabel = language === "he" ? scene.partHe : scene.part;
@@ -794,6 +868,9 @@ export default function XPresPage() {
                       )}
                     </div>
                   </div>
+                ) : i === scenes.length - 1 ? (
+                  /* Thank You grid in continuous mode */
+                  <ThankYouGrid mediaMode={mediaMode} language={language} />
                 ) : (
                 <div
                   className={`x-pres-content ${s.panelPosition} ${isRTL ? "rtl" : ""}`}
@@ -890,11 +967,16 @@ export default function XPresPage() {
             </div>
           )}
 
+          {/* ── Thank You Grid Overlay ── */}
+          {isThankYou && (
+            <ThankYouGrid mediaMode={mediaMode} language={language} />
+          )}
+
           {/* ── Active video transition overlay ── */}
           {mediaMode === "video" && getTransitionComponent()}
 
           {/* HUD Brackets */}
-          {!isOpeningSlide && (
+          {!isOpeningSlide && !isThankYou && (
           <div className="x-pres-hud" style={{ zIndex: 80 }}>
             <div className="x-pres-hud-bracket x-pres-hud-tl" />
             <div className="x-pres-hud-bracket x-pres-hud-tr" />
@@ -937,7 +1019,7 @@ export default function XPresPage() {
           </div>
 
           {/* Content Panel */}
-          {title && !isOpeningSlide && (
+          {title && !isOpeningSlide && !isThankYou && (
             <div
               ref={panelRef}
               className={`x-pres-content ${scene.panelPosition} ${isRTL ? "rtl" : ""}`}

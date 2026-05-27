@@ -6,40 +6,65 @@ argument-hint: "[--skip-tests to bypass test gate]"
 
 # Deploy to hundia.casa
 
-Builds the Next.js static export and deploys to the private domain.
+Builds the Next.js production build and restarts the local Next.js server on port 3848, which nginx reverse-proxies to `https://hundia.casa/presentations/x_pres`.
 
 ## ⚠️ IMPORTANT: This is a PRIVATE presentation
 
 - **NEVER** deploy to GitHub Pages
 - **NEVER** push the `out/` folder to a public location
 - The only authorized deployment target is: **https://hundia.casa/presentations/x_pres**
-- A separate repo will be created later for the public deployment
 
-## Pre-flight Checks
+## Architecture
 
-Run these in order. Stop and fix on any failure.
+```
+nginx (hundia.casa:443)
+  └─ location /presentations/x_pres → proxy_pass http://127.0.0.1:3848
+  └─ location /presentations/x_pres/frames/ → alias /opt/dept_pres/public/presentations/x_pres/frames/
 
-```bash
-npm run type-check                  # TypeScript — must be clean
-npm test                            # Vitest — all green
-NEXT_OUTPUT=export npm run build    # Static export to out/
+Next.js production server (port 3848)
+  └─ /opt/dept_pres
 ```
 
-> Skip tests only if the user explicitly passes `--skip-tests`.
+## Deploy Steps
 
-## Build Notes
-
-- No `basePath` needed — the site is served at root of the domain
-- Images must use relative paths or Next.js `<Image>` with `unoptimized: true`
-- No `useSearchParams` without a `<Suspense>` boundary (breaks static export)
-- Clean `.next/` if you see stale export errors: `rm -rf .next`
-
-## Deploy
-
-After build, push to master. Deployment to hundia.casa is handled externally.
+### 1. Pre-flight (optional, skip with --skip-tests)
 
 ```bash
-git add <changed files>
+npm run type-check
+npm test
+```
+
+### 2. Build
+
+```bash
+cd /opt/dept_pres
+npm run build
+```
+
+### 3. Restart the server
+
+Find and kill the existing Next.js server, then start fresh:
+
+```bash
+# Find PID
+ss -tlnp | grep 3848
+# Kill it (use the actual PID from above)
+kill <PID>
+# Start new server (detached)
+cd /opt/dept_pres && npx next start -p 3848 &>/dev/null & disown
+```
+
+### 4. Verify
+
+```bash
+curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3848/presentations/x_pres
+# Should return 200
+```
+
+### 5. Push to git (optional, for version tracking)
+
+```bash
+git add -A
 git commit -m "feat: <description>"
 git push origin master
 ```
@@ -52,7 +77,8 @@ git push origin master
 
 | Symptom | Fix |
 |---------|-----|
-| `rename … 500.html` error | `rm -rf .next` then rebuild |
-| Asset 404 | Ensure no `basePath` is set in `next.config.ts` |
-| `useSearchParams` without Suspense | Wrap component in `<Suspense>` |
-| Framer Motion SSR error | Add `"use client"` to the component file |
+| 502 Bad Gateway | Server not running — restart with `npx next start -p 3848` |
+| Stale content | Rebuild + restart server |
+| Port already in use | Kill existing process: `ss -tlnp \| grep 3848` then `kill <PID>` |
+| Asset 404 | Static files served by nginx from `/opt/dept_pres/public/` |
+| `rm -rf .next` | Clean build cache if you see stale export errors |

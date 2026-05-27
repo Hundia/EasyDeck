@@ -418,7 +418,7 @@ export default function XPresPage() {
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [loadProgress, setLoadProgress] = useState(0);
   const [scrollMode, setScrollMode] = useState<ScrollMode>("gsap");
-  const [language, setLanguage] = useState<Language>("both");
+  const [language, setLanguage] = useState<Language>("he");
   const [prevImage, setPrevImage] = useState<string>("");
   const [prevVideo, setPrevVideo] = useState<string>("");
   const [prevVisible, setPrevVisible] = useState(false);

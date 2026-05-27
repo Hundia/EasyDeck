@@ -626,39 +626,63 @@ export default function XPresPage() {
   /* ─── Opening slide GSAP animation ──────────────────────────────── */
 
   useEffect(() => {
-    if (currentScene !== 0 || openingPlayedRef.current) return;
-    if (!openingEnRef.current || !openingHeRef.current || !openingLineRef.current) return;
+    if (currentScene !== 0) return;
+    const titleEl = language === "he" ? openingHeRef.current : openingEnRef.current;
+    const lineEl = openingLineRef.current;
+    if (!titleEl || !lineEl) return;
 
     const reduce = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduce) {
-      gsap.set([openingEnRef.current, openingHeRef.current, openingLineRef.current], { opacity: 1 });
-      gsap.set(openingLineRef.current, { width: 80 });
+      gsap.set([titleEl, lineEl], { opacity: 1 });
+      gsap.set(lineEl, { width: 80 });
       openingPlayedRef.current = true;
       return;
     }
 
+    // Entrance timeline
     const tl = gsap.timeline({
       delay: 0.4,
-      onComplete: () => { openingPlayedRef.current = true; },
+      onComplete: () => {
+        openingPlayedRef.current = true;
+        // Persistent subtle "alive" animation — gentle glow pulse + breathing
+        breathTl = gsap.timeline({ repeat: -1, yoyo: true });
+        breathTl
+          .to(titleEl, {
+            textShadow: "0 0 30px rgba(0, 212, 255, 0.3), 0 2px 24px rgba(0, 0, 0, 0.85)",
+            letterSpacing: language === "he" ? "0.08em" : "0.20em",
+            duration: 3,
+            ease: "sine.inOut",
+          })
+          .to(lineEl, {
+            boxShadow: "0 0 20px rgba(0, 212, 255, 0.6)",
+            width: 100,
+            duration: 3,
+            ease: "sine.inOut",
+          }, 0);
+      },
     });
 
-    tl.fromTo(openingLineRef.current,
+    let breathTl: gsap.core.Timeline | null = null;
+
+    // Reset state
+    gsap.set(titleEl, { opacity: 0, y: 28, scale: 1.02, filter: "blur(10px)", clipPath: "inset(0 0 100% 0)" });
+    gsap.set(lineEl, { opacity: 0, width: 0 });
+
+    tl.fromTo(lineEl,
       { opacity: 0, width: 0 },
       { opacity: 1, width: 80, duration: 0.6, ease: "power2.out" }
     )
-    .fromTo(openingEnRef.current,
+    .fromTo(titleEl,
       { opacity: 0, y: 28, scale: 1.02, filter: "blur(10px)", clipPath: "inset(0 0 100% 0)" },
-      { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", clipPath: "inset(0 0 0% 0)", duration: 1, ease: "power3.out" },
+      { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", clipPath: "inset(0 0 0% 0)", duration: 1.1, ease: "power3.out" },
       0.15
-    )
-    .fromTo(openingHeRef.current,
-      { opacity: 0, y: 20, filter: "blur(8px)", clipPath: "inset(0 0 100% 0)" },
-      { opacity: 1, y: 0, filter: "blur(0px)", clipPath: "inset(0 0 0% 0)", duration: 0.9, ease: "power2.out" },
-      0.35
     );
 
-    return () => { tl.kill(); };
-  }, [currentScene, imagesLoaded]);
+    return () => {
+      tl.kill();
+      if (breathTl) breathTl.kill();
+    };
+  }, [currentScene, imagesLoaded, language]);
 
   const scene = scenes[currentScene];
   const isRTL = language === "he";
@@ -759,12 +783,15 @@ export default function XPresPage() {
                     <div className="x-pres-opening-veil" />
                     <div className="x-pres-opening-content">
                       <div className="x-pres-opening-line" style={{ opacity: 1, width: 80 }} />
-                      <h1 className="x-pres-opening-title-en" style={{ opacity: 1 }}>
-                        Intelligence Department
-                      </h1>
-                      <p className="x-pres-opening-title-he" style={{ opacity: 1 }}>
-                        מערכות מודיעין
-                      </p>
+                      {language === "he" ? (
+                        <h1 className="x-pres-opening-title-he" style={{ opacity: 1, fontSize: "clamp(2.5rem, 6vw, 5rem)" }}>
+                          מערכות מודיעין
+                        </h1>
+                      ) : (
+                        <h1 className="x-pres-opening-title-en" style={{ opacity: 1 }}>
+                          Intelligence Department
+                        </h1>
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -850,12 +877,15 @@ export default function XPresPage() {
               <div className="x-pres-opening-veil" />
               <div className="x-pres-opening-content">
                 <div ref={openingLineRef} className="x-pres-opening-line" />
-                <h1 ref={openingEnRef} className="x-pres-opening-title-en">
-                  Intelligence Department
-                </h1>
-                <p ref={openingHeRef} className="x-pres-opening-title-he">
-                  מערכות מודיעין
-                </p>
+                {language === "he" ? (
+                  <h1 ref={openingHeRef} className="x-pres-opening-title-he" style={{ fontSize: "clamp(2.5rem, 6vw, 5rem)" }}>
+                    מערכות מודיעין
+                  </h1>
+                ) : (
+                  <h1 ref={openingEnRef} className="x-pres-opening-title-en">
+                    Intelligence Department
+                  </h1>
+                )}
               </div>
             </div>
           )}

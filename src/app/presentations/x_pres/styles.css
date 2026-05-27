@@ -40,6 +40,7 @@
   box-shadow: 0 0 12px rgba(0, 212, 255, 0.4);
   margin: 0 auto 1.5rem;
   opacity: 0;
+  transition: box-shadow 0.3s ease;
 }
 
 .x-pres-opening-title-en {

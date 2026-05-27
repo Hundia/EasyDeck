@@ -120,39 +120,78 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(10, 14, 20, 0.92);
-  border: 1px solid rgba(0, 212, 255, 0.25);
+  background: rgba(5, 10, 18, 0.88);
+  border: 1px solid rgba(0, 212, 255, 0.35);
   box-shadow:
-    0 0 40px rgba(0, 212, 255, 0.1),
-    inset 0 0 60px rgba(0, 0, 0, 0.5);
+    0 0 60px rgba(0, 212, 255, 0.12),
+    0 0 120px rgba(0, 212, 255, 0.05),
+    inset 0 0 80px rgba(0, 10, 30, 0.6);
+  overflow: hidden;
+}
+
+.x-pres-thankyou-center::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg, rgba(0, 212, 255, 0.05) 0%, transparent 50%),
+    linear-gradient(315deg, rgba(0, 212, 255, 0.03) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.x-pres-thankyou-center::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border: 1px solid transparent;
+  border-image: linear-gradient(135deg, rgba(0, 212, 255, 0.5), transparent 40%, transparent 60%, rgba(0, 212, 255, 0.3)) 1;
+  pointer-events: none;
 }
 
 .x-pres-thankyou-center-inner {
   text-align: center;
   padding: 2rem;
+  position: relative;
+  z-index: 2;
 }
 
 .x-pres-thankyou-title {
-  font-size: clamp(2.5rem, 5vw, 5rem);
+  font-family: "Quantico", "Heebo", sans-serif;
+  font-size: clamp(3rem, 6vw, 6rem);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: #F8FAFC;
-  text-shadow:
-    0 0 20px rgba(0, 212, 255, 0.3),
-    0 2px 20px rgba(0, 0, 0, 0.8);
-  animation: thankYouPulse 3s ease-in-out infinite alternate;
+  letter-spacing: 0.2em;
+  background: linear-gradient(180deg, #ffffff 0%, #67e8f9 40%, #00d4ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.4)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.8));
+  animation: thankYouPulse 4s ease-in-out infinite alternate;
+}
+
+.x-pres-thankyou-subtitle {
+  width: 60px;
+  height: 2px;
+  margin: 1.2rem auto 0;
+  background: linear-gradient(90deg, transparent, #00d4ff, transparent);
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+  animation: subtitleScan 3s ease-in-out infinite alternate;
 }
 
 @keyframes thankYouPulse {
   0% {
-    text-shadow: 0 0 20px rgba(0, 212, 255, 0.2), 0 2px 20px rgba(0, 0, 0, 0.8);
-    letter-spacing: 0.14em;
-  }
-  100% {
-    text-shadow: 0 0 35px rgba(0, 212, 255, 0.4), 0 2px 20px rgba(0, 0, 0, 0.8);
+    filter: drop-shadow(0 0 15px rgba(0, 212, 255, 0.3)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.8));
     letter-spacing: 0.18em;
   }
+  100% {
+    filter: drop-shadow(0 0 35px rgba(0, 212, 255, 0.5)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.8));
+    letter-spacing: 0.24em;
+  }
+}
+
+@keyframes subtitleScan {
+  0% { width: 40px; opacity: 0.5; }
+  100% { width: 90px; opacity: 1; }
 }
 
 @media (max-width: 768px) {

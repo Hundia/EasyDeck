@@ -324,7 +324,7 @@ function SignalStrength({ sceneId }: { sceneId: number }) {
 /* ─── Thank You Grid Component ────────────────────────────────────── */
 
 function ThankYouGrid({ mediaMode, language }: { mediaMode: MediaMode; language: Language }) {
-  const titleText = language === "he" ? "תודה" : "Thank You";
+  const titleText = language === "he" ? "תודה רבה" : "THANK YOU";
   const isHebrew = language === "he";
 
   // 4x4 grid: positions 0-15, center 4 cells (5,6,9,10) are the title
@@ -343,10 +343,11 @@ function ThankYouGrid({ mediaMode, language }: { mediaMode: MediaMode; language:
                 <div className="x-pres-thankyou-center-inner">
                   <h1
                     className="x-pres-thankyou-title"
-                    style={isHebrew ? { fontFamily: '"Heebo", sans-serif', direction: "rtl" } : { fontFamily: '"Quantico", sans-serif' }}
+                    style={isHebrew ? { direction: "rtl" } : {}}
                   >
                     {titleText}
                   </h1>
+                  <div className="x-pres-thankyou-subtitle" />
                 </div>
               </div>
             );

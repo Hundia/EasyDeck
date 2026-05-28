@@ -268,6 +268,23 @@ const scenes: Scene[] = [
     panelPosition: "bottom-left",
   },
   {
+    id: 16,
+    part: "FRAMEWORKS",
+    partHe: "תשתיות",
+    titleEn: "FRAMEWORKS",
+    titleHe: "תשתיות",
+    descriptionEn:
+      "Core frameworks and infrastructure powering our intelligence operations — from data ingestion to mission-critical delivery.",
+    descriptionHe:
+      "התשתיות והמסגרות המרכזיות שמניעות את פעילות המודיעין שלנו — מקליטת נתונים ועד הפצה קריטית למשימה.",
+    image: "/presentations/x_pres/frames/frame-frameworks.webp",
+    video: "/presentations/x_pres/videos/frameworks.mp4",
+    accentColor: "#8B5CF6",
+    hudLabel: "SCENE 14 // FRAMEWORKS",
+    dataLine: "INFRASTRUCTURE | PIPELINES | SERVICES | PLATFORMS",
+    panelPosition: "bottom-left",
+  },
+  {
     id: 14,
     part: "",
     partHe: "",

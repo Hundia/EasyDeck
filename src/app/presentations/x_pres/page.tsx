@@ -282,7 +282,7 @@ const scenes: Scene[] = [
     accentColor: "#8B5CF6",
     hudLabel: "SCENE 14 // FRAMEWORKS",
     dataLine: "INFRASTRUCTURE | PIPELINES | SERVICES | PLATFORMS",
-    panelPosition: "bottom-left",
+    panelPosition: "bottom-right",
   },
   {
     id: 14,

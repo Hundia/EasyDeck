@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { Observer } from "gsap/Observer";
 import VideoBackground, { VideoBackgroundHandle } from "./VideoBackground";
+import { EditToolbar, PanelOverride, PanelOverrides, loadOverrides, saveOverrides, FONTS_EN, FONTS_HE } from "./EditToolbar";
 import "./styles.css";
 
 /* ─── Types ───────────────────────────────────────────────────────── */
@@ -444,6 +445,9 @@ export default function XPresPage() {
   const [transitionVersion, setTransitionVersion] = useState<TransitionVersion>("A");
   const [activeTransition, setActiveTransition] = useState<ActiveTransition | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [panelOverrides, setPanelOverrides] = useState<PanelOverrides>({});
+  const [isDragging, setIsDragging] = useState(false);
   const transitionKeyRef = useRef(0);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -468,6 +472,29 @@ export default function XPresPage() {
   useEffect(() => {
     if (typeof window !== "undefined") localStorage.setItem("x-pres-lang", language);
   }, [language]);
+
+  // Panel overrides persistence
+  useEffect(() => {
+    setPanelOverrides(loadOverrides());
+  }, []);
+
+  const updatePanelOverride = useCallback((sceneIdx: number, patch: Partial<PanelOverride>) => {
+    setPanelOverrides((prev) => {
+      const updated = { ...prev, [sceneIdx]: { ...(prev[sceneIdx] || {}), ...patch } };
+      saveOverrides(updated);
+      return updated;
+    });
+  }, []);
+
+  const handlePositionPreset = useCallback((position: string) => {
+    updatePanelOverride(currentScene, { x: undefined, y: undefined });
+    // We update panelPosition by storing as a special value
+    setPanelOverrides((prev) => {
+      const updated = { ...prev, [currentScene]: { ...(prev[currentScene] || {}), x: undefined, y: undefined, position } as PanelOverride & { position?: string } };
+      saveOverrides(updated);
+      return updated;
+    });
+  }, [currentScene, updatePanelOverride]);
 
   // Preload images
   useEffect(() => {
@@ -1059,50 +1086,103 @@ export default function XPresPage() {
           </div>
 
           {/* Content Panel */}
-          {title && !isOpeningSlide && !isThankYou && (
-            <div
-              ref={panelRef}
-              className={`x-pres-content ${scene.panelPosition} ${isRTL ? "rtl" : ""}`}
-            >
-              {partLabel && (
-                <div className="x-pres-label" style={{ color: scene.accentColor }}>{partLabel}</div>
-              )}
-              <h1 className="x-pres-title" style={isThankYou ? { fontSize: "3.5rem", textAlign: "center" } : {}}>
-                {language === "both" ? (
-                  <>
-                    {scene.titleEn}
-                    <div style={{ fontSize: "0.8em", marginTop: 8, direction: "rtl", textAlign: "right" }}>{scene.titleHe}</div>
-                  </>
-                ) : title}
-              </h1>
-              {!isThankYou && (
-                <div className="x-pres-description">
+          {title && !isOpeningSlide && !isThankYou && (() => {
+            const override = panelOverrides[currentScene] || {};
+            const overridePos = (override as PanelOverride & { position?: string }).position;
+            const panelPos = overridePos || scene.panelPosition;
+            const panelStyle: React.CSSProperties = {};
+            if (override.width) panelStyle.width = override.width;
+            if (override.x !== undefined && override.y !== undefined) {
+              panelStyle.left = override.x;
+              panelStyle.top = override.y;
+              panelStyle.right = "auto";
+              panelStyle.bottom = "auto";
+              panelStyle.transform = "none";
+            }
+            const borderClass = override.border === false ? "no-border" : "";
+            const editClass = editMode ? "edit-active" : "";
+            const enFont = override.fontEn || FONTS_EN[0].family;
+            const heFont = override.fontHe || FONTS_HE[0].family;
+
+            return (
+              <div
+                ref={panelRef}
+                className={`x-pres-content ${panelPos} ${isRTL ? "rtl" : ""} ${borderClass} ${editClass}`}
+                style={panelStyle}
+                onPointerDown={editMode ? (e) => {
+                  e.stopPropagation();
+                  if (!panelRef.current) return;
+                  setIsDragging(true);
+                  const rect = panelRef.current.getBoundingClientRect();
+                  const offsetX = e.clientX - rect.left;
+                  const offsetY = e.clientY - rect.top;
+                  const onMove = (ev: PointerEvent) => {
+                    ev.stopPropagation();
+                    ev.preventDefault();
+                    const newX = ev.clientX - offsetX;
+                    const newY = ev.clientY - offsetY;
+                    if (panelRef.current) {
+                      panelRef.current.style.left = `${newX}px`;
+                      panelRef.current.style.top = `${newY}px`;
+                      panelRef.current.style.right = "auto";
+                      panelRef.current.style.bottom = "auto";
+                      panelRef.current.style.transform = "none";
+                    }
+                  };
+                  const onUp = (ev: PointerEvent) => {
+                    ev.stopPropagation();
+                    setIsDragging(false);
+                    document.removeEventListener("pointermove", onMove);
+                    document.removeEventListener("pointerup", onUp);
+                    if (panelRef.current) {
+                      const finalRect = panelRef.current.getBoundingClientRect();
+                      updatePanelOverride(currentScene, { x: finalRect.left, y: finalRect.top });
+                    }
+                  };
+                  document.addEventListener("pointermove", onMove);
+                  document.addEventListener("pointerup", onUp);
+                } : undefined}
+              >
+                {partLabel && (
+                  <div className="x-pres-label" style={{ color: scene.accentColor }}>{partLabel}</div>
+                )}
+                <h1 className="x-pres-title" style={{ fontFamily: isRTL ? heFont : enFont }}>
                   {language === "both" ? (
                     <>
-                      <p>{scene.descriptionEn}</p>
-                      <p style={{ direction: "rtl", textAlign: "right", marginTop: 12 }}>{scene.descriptionHe}</p>
+                      <span style={{ fontFamily: enFont }}>{scene.titleEn}</span>
+                      <div style={{ fontSize: "0.8em", marginTop: 8, direction: "rtl", textAlign: "right", fontFamily: heFont }}>{scene.titleHe}</div>
                     </>
-                  ) : <p>{description}</p>}
-                </div>
-              )}
-              {isThankYou && (
-                <div style={{ textAlign: "center", color: "var(--x-pres-text-muted)", marginTop: 16 }}>
-                  {language === "both" ? (
-                    <>
-                      <p>{scene.descriptionEn}</p>
-                      <p style={{ direction: "rtl", marginTop: 8 }}>{scene.descriptionHe}</p>
-                    </>
-                  ) : <p>{description}</p>}
-                </div>
-              )}
-              {scene.dataLine && !isThankYou && (
-                <div className="x-pres-data-row">
-                  <span style={{ color: "var(--x-pres-text-muted)" }}>DATA</span>
-                  <span className="x-pres-data-val" style={{ color: scene.accentColor }}>{scene.dataLine}</span>
-                </div>
-              )}
-            </div>
-          )}
+                  ) : title}
+                </h1>
+                {!isThankYou && (
+                  <div className="x-pres-description" style={{ fontFamily: isRTL ? heFont : enFont }}>
+                    {language === "both" ? (
+                      <>
+                        <p style={{ fontFamily: enFont }}>{scene.descriptionEn}</p>
+                        <p style={{ direction: "rtl", textAlign: "right", marginTop: 12, fontFamily: heFont }}>{scene.descriptionHe}</p>
+                      </>
+                    ) : <p>{description}</p>}
+                  </div>
+                )}
+                {isThankYou && (
+                  <div style={{ textAlign: "center", color: "var(--x-pres-text-muted)", marginTop: 16 }}>
+                    {language === "both" ? (
+                      <>
+                        <p style={{ fontFamily: enFont }}>{scene.descriptionEn}</p>
+                        <p style={{ direction: "rtl", marginTop: 8, fontFamily: heFont }}>{scene.descriptionHe}</p>
+                      </>
+                    ) : <p>{description}</p>}
+                  </div>
+                )}
+                {scene.dataLine && !isThankYou && (
+                  <div className="x-pres-data-row">
+                    <span style={{ color: "var(--x-pres-text-muted)" }}>DATA</span>
+                    <span className="x-pres-data-val" style={{ color: scene.accentColor }}>{scene.dataLine}</span>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Scene Counter */}
           {!isOpeningSlide && !isThankYou && (() => {
@@ -1272,6 +1352,19 @@ export default function XPresPage() {
           </button>
         </div>
 
+        {/* Edit Mode Pill */}
+        <div className="x-pres-control-pill">
+          <button
+            className={`x-pres-control-btn ${editMode ? "active" : ""}`}
+            style={editMode ? { background: scene.accentColor } : {}}
+            onClick={() => setEditMode(!editMode)}
+            data-tooltip="Edit panel"
+            aria-label="Edit mode"
+          >
+            ✎
+          </button>
+        </div>
+
         {/* Transition Version Pill — only in video mode */}
         <AnimatePresence>
           {mediaMode === "video" && (
@@ -1329,6 +1422,19 @@ export default function XPresPage() {
           transition={{ duration: 0.6, ease: "easeInOut" }}
         />
       </div>
+
+      {/* Edit Toolbar */}
+      <AnimatePresence>
+        {editMode && (
+          <EditToolbar
+            sceneIndex={currentScene}
+            overrides={panelOverrides}
+            onUpdate={updatePanelOverride}
+            accentColor={scene.accentColor}
+            onPositionPreset={handlePositionPreset}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

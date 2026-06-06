@@ -311,3 +311,27 @@ Build a production-ready scrollytelling presentation engine that delivers Apple-
 5. Create docs/guides/creating-presentations.md
 6. Update docs viewer
 7. Validation tests (8 passing)
+
+---
+
+## Sprint 13: Edit Mode — Slide Text Panel Customizer ✅
+**Goal**: Add an "Edit" mode to the presentation menu that allows per-slide text panel customization (position, size, border, fonts).
+**Estimated complexity**: Medium-High | **Agent**: Sonnet 4.6
+
+### Tasks
+1. [x] Add Edit Mode state & menu button (pencil icon toggle)
+2. [x] Panel override data model & localStorage persistence
+3. [x] Position controls (5 presets + free drag)
+4. [x] Size controls (width slider 300–700px)
+5. [x] Border toggle (on/off)
+6. [x] Font selection (4 English + 4 Hebrew fonts)
+7. [x] Edit toolbar UI component (floating, animated)
+8. [x] Integration & conflict prevention (no GSAP/Lenis interference)
+
+### Acceptance Criteria
+- Edit button appears in top-right menu alongside existing mode pills
+- Panel position, size, border, and font customizable per slide
+- All overrides persist to localStorage
+- Edit interactions don't trigger slide transitions
+- Works in all scroll modes (gsap, continuous, autoplay)
+- Fonts: Inter, Space Grotesk, JetBrains Mono, Playfair Display (EN) + Heebo, Rubik, Assistant, Frank Ruhl Libre (HE)

@@ -458,7 +458,6 @@ export default function XPresPage() {
   const panelRef = useRef<HTMLDivElement>(null);
   const isTransitioningRef = useRef(false);
   const currentSceneRef = useRef(0);
-  const editModeRef = useRef(false);
   const sceneRefs = useRef<(HTMLDivElement | null)[]>([]);
   const gsapObserverRef = useRef<ReturnType<typeof Observer.create> | null>(null);
   const videoBgRef = useRef<VideoBackgroundHandle | null>(null);
@@ -466,11 +465,6 @@ export default function XPresPage() {
   const openingEnRef = useRef<HTMLHeadingElement>(null);
   const openingHeRef = useRef<HTMLParagraphElement>(null);
   const openingPlayedRef = useRef(false);
-
-  // Keep editModeRef in sync
-  useEffect(() => {
-    editModeRef.current = editMode;
-  }, [editMode]);
 
   // Language persistence
   useEffect(() => {
@@ -692,7 +686,6 @@ export default function XPresPage() {
   /* ─── Unified transition entry ────────────────────────────────── */
 
   const doGsapTransition = useCallback((nextIndex: number, dir: number) => {
-    if (editModeRef.current) return;
     const fromScene = scenes[currentSceneRef.current];
     const toScene = scenes[nextIndex];
     if (mediaMode === "video" && fromScene.video && toScene.video) {
@@ -704,7 +697,7 @@ export default function XPresPage() {
 
   // Autoplay
   useEffect(() => {
-    if (scrollMode === "autoplay" && !editMode) {
+    if (scrollMode === "autoplay") {
       setAutoplayProgress(0);
       const progressInterval = setInterval(() => {
         setAutoplayProgress((p) => (p >= 100 ? 0 : p + 100 / 60));
@@ -721,11 +714,11 @@ export default function XPresPage() {
       if (autoplayRef.current) clearInterval(autoplayRef.current);
       setAutoplayProgress(0);
     }
-  }, [scrollMode, doGsapTransition, editMode]);
+  }, [scrollMode, doGsapTransition]);
 
   // GSAP Observer
   useEffect(() => {
-    if (scrollMode !== "gsap" || editMode) {
+    if (scrollMode !== "gsap") {
       gsapObserverRef.current?.kill();
       gsapObserverRef.current = null;
       return;
@@ -754,7 +747,7 @@ export default function XPresPage() {
       document.body.style.overflow = "";
       document.documentElement.style.overflow = "";
     };
-  }, [scrollMode, doGsapTransition, editMode]);
+  }, [scrollMode, doGsapTransition]);
 
   // Continuous mode
   useEffect(() => {
@@ -791,7 +784,6 @@ export default function XPresPage() {
   // Keyboard
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (editModeRef.current) return;
       const goNext = e.key === "ArrowDown" || e.key === " " || e.key === "ArrowRight" || e.key === "PageDown";
       const goPrev = e.key === "ArrowUp" || e.key === "ArrowLeft" || e.key === "PageUp";
       const goHome = e.key === "Home";
@@ -1459,7 +1451,6 @@ export default function XPresPage() {
             className={`x-pres-nav-dot ${i === currentScene ? "active" : ""}`}
             style={i === currentScene ? { background: scene.accentColor, boxShadow: `0 0 10px ${scene.accentColor}` } : {}}
             onClick={() => {
-              if (editMode) return;
               if (scrollMode === "continuous" && sceneRefs.current[i]) {
                 sceneRefs.current[i]!.scrollIntoView({ behavior: "smooth" });
               } else {

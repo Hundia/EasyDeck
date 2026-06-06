@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { Observer } from "gsap/Observer";
 import VideoBackground, { VideoBackgroundHandle } from "./VideoBackground";
-import { EditToolbar, PanelOverride, PanelOverrides, loadOverrides, saveOverrides, FONTS_EN, FONTS_HE } from "./EditToolbar";
+import { EditToolbar, PanelOverride, PanelOverrides, TextBoxes, ExtraTextBox, loadOverrides, saveOverrides, loadTextBoxes, saveTextBoxes, FONTS_EN, FONTS_HE } from "./EditToolbar";
 import "./styles.css";
 
 /* ─── Types ───────────────────────────────────────────────────────── */
@@ -447,6 +447,8 @@ export default function XPresPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [panelOverrides, setPanelOverrides] = useState<PanelOverrides>({});
+  const [textBoxes, setTextBoxes] = useState<TextBoxes>({});
+  const [selectedTextBox, setSelectedTextBox] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const transitionKeyRef = useRef(0);
 
@@ -488,13 +490,60 @@ export default function XPresPage() {
 
   const handlePositionPreset = useCallback((position: string) => {
     updatePanelOverride(currentScene, { x: undefined, y: undefined });
-    // We update panelPosition by storing as a special value
     setPanelOverrides((prev) => {
       const updated = { ...prev, [currentScene]: { ...(prev[currentScene] || {}), x: undefined, y: undefined, position } as PanelOverride & { position?: string } };
       saveOverrides(updated);
       return updated;
     });
   }, [currentScene, updatePanelOverride]);
+
+  // Text boxes persistence
+  useEffect(() => {
+    setTextBoxes(loadTextBoxes());
+  }, []);
+
+  const currentTextBoxes = textBoxes[currentScene] || [];
+
+  const handleAddTextBox = useCallback(() => {
+    const newBox: ExtraTextBox = {
+      id: `tb-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      text: "New text",
+      x: 100,
+      y: 100,
+      width: 250,
+      border: true,
+      fontFamily: "'Inter', sans-serif",
+      fontSize: 18,
+    };
+    setTextBoxes((prev) => {
+      const sceneBoxes = [...(prev[currentScene] || []), newBox];
+      const updated = { ...prev, [currentScene]: sceneBoxes };
+      saveTextBoxes(updated);
+      return updated;
+    });
+    setSelectedTextBox(newBox.id);
+  }, [currentScene]);
+
+  const handleUpdateTextBox = useCallback((boxId: string, patch: Partial<ExtraTextBox>) => {
+    setTextBoxes((prev) => {
+      const sceneBoxes = (prev[currentScene] || []).map((b) =>
+        b.id === boxId ? { ...b, ...patch } : b
+      );
+      const updated = { ...prev, [currentScene]: sceneBoxes };
+      saveTextBoxes(updated);
+      return updated;
+    });
+  }, [currentScene]);
+
+  const handleDeleteTextBox = useCallback((boxId: string) => {
+    setTextBoxes((prev) => {
+      const sceneBoxes = (prev[currentScene] || []).filter((b) => b.id !== boxId);
+      const updated = { ...prev, [currentScene]: sceneBoxes };
+      saveTextBoxes(updated);
+      return updated;
+    });
+    if (selectedTextBox === boxId) setSelectedTextBox(null);
+  }, [currentScene, selectedTextBox]);
 
   // Preload images
   useEffect(() => {
@@ -1432,9 +1481,62 @@ export default function XPresPage() {
             onUpdate={updatePanelOverride}
             accentColor={scene.accentColor}
             onPositionPreset={handlePositionPreset}
+            textBoxes={currentTextBoxes}
+            onAddTextBox={handleAddTextBox}
+            onUpdateTextBox={handleUpdateTextBox}
+            onDeleteTextBox={handleDeleteTextBox}
+            selectedTextBox={selectedTextBox}
+            onSelectTextBox={setSelectedTextBox}
           />
         )}
       </AnimatePresence>
+
+      {/* Extra Text Boxes */}
+      {currentTextBoxes.map((box) => (
+        <div
+          key={box.id}
+          className={`x-pres-extra-textbox ${editMode ? "edit-active" : ""} ${selectedTextBox === box.id ? "selected" : ""} ${!box.border ? "no-border" : ""}`}
+          style={{
+            left: box.x,
+            top: box.y,
+            width: box.width,
+            fontFamily: box.fontFamily,
+            fontSize: box.fontSize,
+            borderColor: box.border ? `${scene.accentColor}44` : "transparent",
+            boxShadow: box.border ? `0 10px 30px rgba(0,0,0,0.4), inset 0 0 0 1px ${scene.accentColor}22` : "0 10px 30px rgba(0,0,0,0.3)",
+          }}
+          onClick={editMode ? (e) => { e.stopPropagation(); setSelectedTextBox(box.id); } : undefined}
+          onPointerDown={editMode ? (e) => {
+            e.stopPropagation();
+            setSelectedTextBox(box.id);
+            const el = e.currentTarget as HTMLDivElement;
+            const offsetX = e.clientX - el.getBoundingClientRect().left;
+            const offsetY = e.clientY - el.getBoundingClientRect().top;
+            const onMove = (ev: PointerEvent) => {
+              ev.stopPropagation();
+              ev.preventDefault();
+              el.style.left = `${ev.clientX - offsetX}px`;
+              el.style.top = `${ev.clientY - offsetY}px`;
+            };
+            const onUp = (ev: PointerEvent) => {
+              ev.stopPropagation();
+              document.removeEventListener("pointermove", onMove);
+              document.removeEventListener("pointerup", onUp);
+              const finalRect = el.getBoundingClientRect();
+              handleUpdateTextBox(box.id, { x: finalRect.left, y: finalRect.top });
+            };
+            document.addEventListener("pointermove", onMove);
+            document.addEventListener("pointerup", onUp);
+          } : undefined}
+          contentEditable={editMode}
+          suppressContentEditableWarning
+          onBlur={editMode ? (e) => {
+            handleUpdateTextBox(box.id, { text: e.currentTarget.textContent || "" });
+          } : undefined}
+        >
+          {box.text}
+        </div>
+      ))}
     </div>
   );
 }

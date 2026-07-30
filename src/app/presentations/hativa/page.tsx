@@ -1,0 +1,774 @@
+"use client";
+
+import React, { useState, useEffect, useCallback, useRef, lazy, Suspense } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import gsap from "gsap";
+import { Observer } from "gsap/Observer";
+
+import VideoBackground from "../x_pres/VideoBackground";
+import {
+  EditToolbar,
+  PanelOverride,
+  PanelOverrides,
+  TextBoxes,
+  ExtraTextBox,
+  loadOverrides,
+  saveOverrides,
+  loadTextBoxes,
+  saveTextBoxes,
+  FONTS_EN,
+  FONTS_HE,
+} from "../x_pres/EditToolbar";
+import SlidePanels, { SlideLayout } from "./SlidePanels";
+import "../x_pres/styles.css";
+
+/* ─── Types ───────────────────────────────────────────────────────── */
+
+type ScrollMode = "gsap" | "continuous" | "autoplay";
+type Language = "both" | "en" | "he";
+type MediaMode = "image" | "video";
+/** How much slide text is on screen: everything, titles only, or nothing. */
+type TextMode = "full" | "header" | "none";
+type TransitionVersion = "A" | "B" | "C";
+
+interface Scene {
+  id: number;
+  part: string;
+  partHe: string;
+  titleEn: string;
+  titleHe: string;
+  bulletsEn: string[];
+  bulletsHe: string[];
+  image: string;
+  video?: string;
+  accentColor: string;
+  hudLabel: string;
+  hudLabelHe: string;
+  dataLine?: string;
+  layout: SlideLayout;
+  /** Retained only to satisfy the shared transition components' SceneData shape. */
+  panelPosition: "bottom-center";
+}
+
+import slidesData from "./slides.json";
+
+const ACCENT_COLORS = [
+  "#00D4FF",
+  "#3D7BFF",
+  "#FF2E3B",
+  "#FFB830",
+  "#00E676",
+  "#A855F7",
+  "#FFB830",
+  "#00D4FF",
+];
+
+function resolveAsset(filename: string, folder: "frames" | "videos"): string {
+  if (!filename) return "";
+  const cleanName = filename.replace(/^\d+_/, "");
+  return `/presentations/hativa/${folder}/${cleanName}`;
+}
+
+const scenes: Scene[] = slidesData.slides.map((s, idx) => ({
+  id: idx,
+  part: s.en.act.toUpperCase(),
+  partHe: s.he.act,
+  titleEn: s.en.title,
+  titleHe: s.he.title,
+  bulletsEn: s.en.bullets,
+  bulletsHe: s.he.bullets,
+  image: resolveAsset(s.image, "frames"),
+  video: resolveAsset(s.video, "videos"),
+  accentColor: ACCENT_COLORS[idx % ACCENT_COLORS.length],
+  hudLabel: s.en.footer,
+  hudLabelHe: s.he.footer,
+  dataLine: `DIORAMA: ${s.diorama} | PROVENANCE: ${s.provenance ? s.provenance.join(", ").toUpperCase() : "RESEARCH"}`,
+  layout: (s as { layout: SlideLayout }).layout,
+  panelPosition: "bottom-center",
+}));
+
+/* ─── Lazy Transitions ────────────────────────────────────────────── */
+
+const DeadDropTransition = lazy(() => import("../x_pres/transitions/DeadDropTransition"));
+const OrbitalTransition = lazy(() => import("../x_pres/transitions/OrbitalTransition"));
+const ConsensusTransition = lazy(() => import("../x_pres/transitions/ConsensusTransition"));
+
+/* ─── Active transition state ─────────────────────────────────────── */
+
+interface ActiveTransition {
+  fromIndex: number;
+  toIndex: number;
+  direction: 1 | -1;
+  key: number;
+}
+
+/* ─── Main Hativa Page Component ─────────────────────────────────── */
+
+export default function HativaPresPage() {
+  const STORAGE_PREFIX = "hativa-pres";
+  const [currentScene, setCurrentScene] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
+  const [loadProgress, setLoadProgress] = useState(0);
+  const [scrollMode, setScrollMode] = useState<ScrollMode>("gsap");
+  const [language, setLanguage] = useState<Language>("both");
+  const [prevImage, setPrevImage] = useState<string>("");
+  const [prevVideo, setPrevVideo] = useState<string>("");
+  const [prevVisible, setPrevVisible] = useState(false);
+  const [autoplayProgress, setAutoplayProgress] = useState(0);
+  const [mediaMode, setMediaMode] = useState<MediaMode>("video");
+  const [transitionVersion, setTransitionVersion] = useState<TransitionVersion>("A");
+  const [activeTransition, setActiveTransition] = useState<ActiveTransition | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [panelSize, setPanelSize] = useState<"lg" | "md" | "sm">("lg");
+  const [textMode, setTextMode] = useState<TextMode>("header");
+  const [panelOverrides, setPanelOverrides] = useState<PanelOverrides>({});
+  const [textBoxes, setTextBoxes] = useState<TextBoxes>({});
+  const [selectedTextBox, setSelectedTextBox] = useState<string | null>(null);
+  const transitionKeyRef = useRef(0);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const autoplayRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const prevBgRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const videoBgRef = useRef<any>(null);
+  const isTransitioningRef = useRef(false);
+  const currentSceneRef = useRef(0);
+  const gsapObserverRef = useRef<ReturnType<typeof Observer.create> | null>(null);
+
+  // Language persistence
+  useEffect(() => {
+    const saved = typeof window !== "undefined" ? localStorage.getItem(`${STORAGE_PREFIX}-lang`) : null;
+    if (saved === "en" || saved === "he" || saved === "both") setLanguage(saved);
+  }, []);
+  useEffect(() => {
+    if (typeof window !== "undefined") localStorage.setItem(`${STORAGE_PREFIX}-lang`, language);
+  }, [language]);
+
+  // Text-mode persistence
+  useEffect(() => {
+    const saved = typeof window !== "undefined" ? localStorage.getItem(`${STORAGE_PREFIX}-textmode`) : null;
+    if (saved === "full" || saved === "header" || saved === "none") setTextMode(saved);
+  }, []);
+  useEffect(() => {
+    if (typeof window !== "undefined") localStorage.setItem(`${STORAGE_PREFIX}-textmode`, textMode);
+  }, [textMode]);
+
+  // Overrides persistence
+  useEffect(() => {
+    setPanelOverrides(loadOverrides(STORAGE_PREFIX));
+  }, []);
+
+  const updatePanelOverride = useCallback((sceneIdx: number, patch: Partial<PanelOverride>) => {
+    setPanelOverrides((prev) => {
+      const updated = { ...prev, [sceneIdx]: { ...(prev[sceneIdx] || {}), ...patch } };
+      saveOverrides(updated, STORAGE_PREFIX);
+      return updated;
+    });
+  }, []);
+
+  const handlePositionPreset = useCallback(
+    (position: string) => {
+      updatePanelOverride(currentScene, { x: undefined, y: undefined });
+      setPanelOverrides((prev) => {
+        const updated = {
+          ...prev,
+          [currentScene]: {
+            ...(prev[currentScene] || {}),
+            x: undefined,
+            y: undefined,
+            position,
+          } as PanelOverride & { position?: string },
+        };
+        saveOverrides(updated, STORAGE_PREFIX);
+        return updated;
+      });
+    },
+    [currentScene, updatePanelOverride]
+  );
+
+  // Text boxes persistence
+  useEffect(() => {
+    setTextBoxes(loadTextBoxes(STORAGE_PREFIX));
+  }, []);
+
+  const handleAddTextBox = useCallback(() => {
+    const newBox: ExtraTextBox = {
+      id: `tb-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      text: "New text note",
+      x: 100,
+      y: 100,
+      width: 280,
+      border: true,
+      fontFamily: "'Inter', sans-serif",
+      fontSize: 18,
+    };
+    setTextBoxes((prev) => {
+      const sceneBoxes = [...(prev[currentScene] || []), newBox];
+      const updated = { ...prev, [currentScene]: sceneBoxes };
+      saveTextBoxes(updated, STORAGE_PREFIX);
+      return updated;
+    });
+    setSelectedTextBox(newBox.id);
+  }, [currentScene]);
+
+  const handleUpdateTextBox = useCallback(
+    (boxId: string, patch: Partial<ExtraTextBox>) => {
+      setTextBoxes((prev) => {
+        const sceneBoxes = (prev[currentScene] || []).map((b) =>
+          b.id === boxId ? { ...b, ...patch } : b
+        );
+        const updated = { ...prev, [currentScene]: sceneBoxes };
+        saveTextBoxes(updated, STORAGE_PREFIX);
+        return updated;
+      });
+    },
+    [currentScene]
+  );
+
+  const handleDeleteTextBox = useCallback(
+    (boxId: string) => {
+      setTextBoxes((prev) => {
+        const sceneBoxes = (prev[currentScene] || []).filter((b) => b.id !== boxId);
+        const updated = { ...prev, [currentScene]: sceneBoxes };
+        saveTextBoxes(updated, STORAGE_PREFIX);
+        return updated;
+      });
+      if (selectedTextBox === boxId) setSelectedTextBox(null);
+    },
+    [currentScene, selectedTextBox]
+  );
+
+  // Preload images
+  useEffect(() => {
+    let loaded = 0;
+    const total = scenes.length;
+    const markDone = () => {
+      loaded++;
+      setLoadProgress(Math.round((loaded / total) * 100));
+      if (loaded === total) setTimeout(() => setImagesLoaded(true), 300);
+    };
+    scenes.forEach((scene) => {
+      const img = new Image();
+      img.onload = markDone;
+      img.onerror = markDone;
+      img.src = scene.image;
+    });
+    const fallback = setTimeout(() => {
+      setImagesLoaded(true);
+    }, 4000);
+    return () => clearTimeout(fallback);
+  }, []);
+
+  // Sync currentSceneRef
+  useEffect(() => {
+    currentSceneRef.current = currentScene;
+  }, [currentScene]);
+
+  // Robust panel animation whenever currentScene or textMode changes
+  useEffect(() => {
+    const el = panelRef.current;
+    if (el && textMode !== "none") {
+      gsap.killTweensOf(el);
+      gsap.fromTo(
+        el,
+        { opacity: 0, y: 16 },
+        { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }
+      );
+    }
+  }, [currentScene, textMode]);
+
+  /* ─── Image Transition ────────────────────────────────────────── */
+
+  const doImageTransition = useCallback((nextIndex: number, dir: number) => {
+    if (isTransitioningRef.current) return;
+    if (nextIndex < 0 || nextIndex >= scenes.length) return;
+    isTransitioningRef.current = true;
+    setIsTransitioning(true);
+
+    const panelEl = panelRef.current;
+    if (panelEl) {
+      gsap.killTweensOf(panelEl);
+      gsap.to(panelEl, { opacity: 0, y: dir * -16, duration: 0.18, ease: "power2.in" });
+    }
+
+    setTimeout(() => {
+      setPrevImage(scenes[currentSceneRef.current].image);
+      setPrevVisible(true);
+      setCurrentScene(nextIndex);
+      currentSceneRef.current = nextIndex;
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const prevEl = prevBgRef.current;
+          if (prevEl) {
+            gsap.killTweensOf(prevEl);
+            gsap.fromTo(
+              prevEl,
+              { opacity: 1, y: 0, scale: 1 },
+              {
+                opacity: 0,
+                y: dir * -110,
+                scale: 0.94,
+                duration: 0.7,
+                ease: "power3.inOut",
+                onComplete: () => {
+                  setPrevVisible(false);
+                  isTransitioningRef.current = false;
+                  setIsTransitioning(false);
+                },
+              }
+            );
+          } else {
+            setPrevVisible(false);
+            isTransitioningRef.current = false;
+            setIsTransitioning(false);
+          }
+        });
+      });
+    }, 180);
+  }, []);
+
+  /* ─── Video Transition ────────────────────────────────────────── */
+
+  const handleVideoSwitch = useCallback(() => {
+    const next = activeTransition?.toIndex ?? currentSceneRef.current;
+    setCurrentScene(next);
+    currentSceneRef.current = next;
+    setPrevVisible(false);
+  }, [activeTransition]);
+
+  const handleTransitionComplete = useCallback(() => {
+    setActiveTransition(null);
+    isTransitioningRef.current = false;
+    setIsTransitioning(false);
+    setPrevVisible(false);
+  }, []);
+
+  const doVideoTransition = useCallback((nextIndex: number, dir: number) => {
+    if (isTransitioningRef.current) return;
+    if (nextIndex < 0 || nextIndex >= scenes.length) return;
+    isTransitioningRef.current = true;
+    setIsTransitioning(true);
+
+    const prevSrc = scenes[currentSceneRef.current].video || scenes[currentSceneRef.current].image;
+    setPrevVideo(prevSrc);
+    setPrevVisible(true);
+
+    const panelEl = panelRef.current;
+    if (panelEl) {
+      gsap.killTweensOf(panelEl);
+      gsap.to(panelEl, { opacity: 0, y: dir * -16, duration: 0.18, ease: "power2.in" });
+    }
+
+    transitionKeyRef.current += 1;
+    setActiveTransition({
+      fromIndex: currentSceneRef.current,
+      toIndex: nextIndex,
+      direction: dir as 1 | -1,
+      key: transitionKeyRef.current,
+    });
+
+    // Defensive fallback timeout so transition state never locks up
+    setTimeout(() => {
+      if (isTransitioningRef.current) {
+        handleVideoSwitch();
+        handleTransitionComplete();
+      }
+    }, 1300);
+  }, [handleVideoSwitch, handleTransitionComplete]);
+
+  const doGsapTransition = useCallback(
+    (nextIndex: number, dir: number) => {
+      const fromScene = scenes[currentSceneRef.current];
+      const toScene = scenes[nextIndex];
+      if (mediaMode === "video" && fromScene.video && toScene.video) {
+        doVideoTransition(nextIndex, dir);
+      } else {
+        doImageTransition(nextIndex, dir);
+      }
+    },
+    [mediaMode, doVideoTransition, doImageTransition]
+  );
+
+  // Autoplay handler
+  useEffect(() => {
+    if (scrollMode === "autoplay") {
+      setAutoplayProgress(0);
+      const progressInterval = setInterval(() => {
+        setAutoplayProgress((p) => (p >= 100 ? 0 : p + 100 / 60));
+      }, 100);
+      autoplayRef.current = setInterval(() => {
+        doGsapTransition((currentSceneRef.current + 1) % scenes.length, 1);
+        setAutoplayProgress(0);
+      }, 6000);
+      return () => {
+        clearInterval(progressInterval);
+        if (autoplayRef.current) clearInterval(autoplayRef.current);
+      };
+    } else {
+      if (autoplayRef.current) clearInterval(autoplayRef.current);
+      setAutoplayProgress(0);
+    }
+  }, [scrollMode, doGsapTransition]);
+
+  // Register GSAP Observer
+  useEffect(() => {
+    gsap.registerPlugin(Observer);
+    if (scrollMode !== "gsap") {
+      gsapObserverRef.current?.kill();
+      gsapObserverRef.current = null;
+      return;
+    }
+    document.body.style.overflow = "hidden";
+
+    gsapObserverRef.current = Observer.create({
+      type: "wheel,touch,pointer",
+      onDown: () => {
+        const curr = currentSceneRef.current;
+        if (curr < scenes.length - 1) doGsapTransition(curr + 1, 1);
+      },
+      onUp: () => {
+        const curr = currentSceneRef.current;
+        if (curr > 0) doGsapTransition(curr - 1, -1);
+      },
+      wheelSpeed: -1,
+      tolerance: 10,
+      preventDefault: true,
+    });
+
+    return () => {
+      gsapObserverRef.current?.kill();
+      gsapObserverRef.current = null;
+      document.body.style.overflow = "";
+    };
+  }, [scrollMode, doGsapTransition]);
+
+  // Keyboard & Mouse Click Navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.key === "ArrowDown" ||
+        e.key === "PageDown" ||
+        e.key === " " ||
+        e.key === "Enter" ||
+        e.key === "ArrowRight"
+      ) {
+        e.preventDefault();
+        const curr = currentSceneRef.current;
+        if (curr < scenes.length - 1) doGsapTransition(curr + 1, 1);
+      } else if (
+        e.key === "ArrowUp" ||
+        e.key === "PageUp" ||
+        e.key === "ArrowLeft"
+      ) {
+        e.preventDefault();
+        const curr = currentSceneRef.current;
+        if (curr > 0) doGsapTransition(curr - 1, -1);
+      }
+    };
+
+    const handleMouseClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        target.closest(
+          "button, input, select, textarea, .x-pres-toolbar, .x-pres-toolbar-pill, .x-pres-hud-signal, .x-pres-top-menu, .x-pres-edit-panel, .x-pres-edit-toolbar, .x-pres-controls-wrapper, .x-pres-menu-dot, .x-pres-nav-dot, .x-pres-content, .hp-card, a"
+        )
+      ) {
+        return;
+      }
+      const curr = currentSceneRef.current;
+      if (curr < scenes.length - 1) {
+        doGsapTransition(curr + 1, 1);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("click", handleMouseClick);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("click", handleMouseClick);
+    };
+  }, [doGsapTransition]);
+
+  const scene = scenes[currentScene];
+  const override = panelOverrides[currentScene] || {};
+
+  return (
+    <main
+      ref={containerRef}
+      className={`x-pres-container mode-${scrollMode}`}
+      style={{
+        "--x-pres-accent": scene.accentColor,
+      } as React.CSSProperties}
+    >
+      {/* Loading Overlay */}
+      {!imagesLoaded && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 999,
+            background: "#0D1117",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "1.5rem",
+          }}
+        >
+          <div style={{ fontFamily: "JetBrains Mono, monospace", color: scene.accentColor, fontSize: "14px", letterSpacing: "0.2em" }}>
+            INITIALIZING HATIVA BRIEFING... {loadProgress}%
+          </div>
+          <div style={{ width: "200px", height: "2px", background: "rgba(255,255,255,0.1)", borderRadius: "2px", overflow: "hidden" }}>
+            <div style={{ width: `${loadProgress}%`, height: "100%", background: scene.accentColor, transition: "width 0.2s" }} />
+          </div>
+        </div>
+      )}
+
+      {/* Main Background Image / Video */}
+      {mediaMode === "video" && scene.video ? (
+        <VideoBackground
+          ref={videoBgRef}
+          currentSrc={scene.video}
+          prevSrc={prevVideo}
+          prevVisible={prevVisible}
+        />
+      ) : (
+        <>
+          <div
+            className="x-pres-frame-bg"
+            style={{ backgroundImage: `url("${scene.image}")` }}
+          />
+          {prevVisible && (
+            <div
+              ref={prevBgRef}
+              className="x-pres-frame-bg"
+              style={{ backgroundImage: `url("${prevImage}")`, zIndex: 2 }}
+            />
+          )}
+        </>
+      )}
+
+      <div className="x-pres-frame-overlay" />
+      <div className="x-pres-scanlines" />
+
+      {/* HUD Frame Elements */}
+      <div className="x-pres-hud">
+        <div className="x-pres-hud-bracket x-pres-hud-tl" />
+        <div className="x-pres-hud-bracket x-pres-hud-tr" />
+        <div className="x-pres-hud-bracket x-pres-hud-bl" />
+        <div className="x-pres-hud-bracket x-pres-hud-br" />
+      </div>
+
+      {/* Slide Navigation Dots */}
+      <div className="x-pres-nav">
+        {scenes.map((s, idx) => (
+          <button
+            key={s.id}
+            className={`x-pres-nav-dot ${idx === currentScene ? "active" : ""}`}
+            onClick={() => doGsapTransition(idx, idx > currentScene ? 1 : -1)}
+            title={s.titleEn}
+          />
+        ))}
+      </div>
+
+      {/* Floating Control Menu Button & Pills */}
+      <button
+        className="x-pres-menu-dot"
+        style={{
+          background: menuOpen ? scene.accentColor : "rgba(13, 17, 23, 0.8)",
+          boxShadow: `0 0 12px ${scene.accentColor}`,
+        }}
+        onClick={() => setMenuOpen(!menuOpen)}
+        title="Toggle Controls Menu"
+      >
+        {menuOpen ? "✕" : "⚙"}
+      </button>
+
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            className="x-pres-controls-wrapper"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+          >
+            {/* Scroll Mode Pill */}
+            <div className="x-pres-control-pill">
+              {(["gsap", "continuous", "autoplay"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  className={`x-pres-control-btn ${scrollMode === mode ? "active" : ""}`}
+                  style={scrollMode === mode ? { background: scene.accentColor } : {}}
+                  onClick={() => setScrollMode(mode)}
+                  data-tooltip={`Mode: ${mode}`}
+                >
+                  {mode === "gsap" ? "⬤" : mode === "continuous" ? "≡" : "▶"}
+                  {mode === "autoplay" && scrollMode === "autoplay" && (
+                    <svg className="x-pres-autoplay-ring" viewBox="0 0 36 36">
+                      <circle cx="18" cy="18" r="16" style={{ strokeDashoffset: 100 - autoplayProgress }} />
+                    </svg>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Language Toggle Pill */}
+            <div className="x-pres-control-pill">
+              {(["both", "en", "he"] as const).map((lang) => (
+                <button
+                  key={lang}
+                  className={`x-pres-control-btn ${language === lang ? "active" : ""}`}
+                  style={language === lang ? { background: scene.accentColor } : {}}
+                  onClick={() => setLanguage(lang)}
+                  data-tooltip={`Lang: ${lang.toUpperCase()}`}
+                >
+                  {lang === "both" ? "🌐" : lang.toUpperCase()}
+                </button>
+              ))}
+            </div>
+
+            {/* Media Mode Pill */}
+            <div className="x-pres-control-pill">
+              {(["image", "video"] as const).map((m) => (
+                <button
+                  key={m}
+                  className={`x-pres-control-btn ${mediaMode === m ? "active" : ""}`}
+                  style={mediaMode === m ? { background: scene.accentColor } : {}}
+                  onClick={() => setMediaMode(m)}
+                  data-tooltip={`Media: ${m}`}
+                >
+                  {m === "image" ? "🖼" : "🎬"}
+                </button>
+              ))}
+            </div>
+
+            {/* Text Display Mode Pill — full text / headers only / nothing */}
+            <div className="x-pres-control-pill">
+              {([
+                { mode: "full", glyph: "\u2261", tip: "Text: full" },
+                { mode: "header", glyph: "T", tip: "Text: headers only" },
+                { mode: "none", glyph: "\u2205", tip: "Text: hidden" },
+              ] as const).map(({ mode, glyph, tip }) => (
+                <button
+                  key={mode}
+                  className={`x-pres-control-btn ${textMode === mode ? "active" : ""}`}
+                  style={textMode === mode ? { background: scene.accentColor } : {}}
+                  onClick={() => setTextMode(mode)}
+                  data-tooltip={tip}
+                >
+                  {glyph}
+                </button>
+              ))}
+            </div>
+
+            {/* Panel Size Pill */}
+            <div className="x-pres-control-pill">
+              {(["lg", "md", "sm"] as const).map((sz) => (
+                <button
+                  key={sz}
+                  className={`x-pres-control-btn ${panelSize === sz ? "active" : ""}`}
+                  style={panelSize === sz ? { background: scene.accentColor } : {}}
+                  onClick={() => setPanelSize(sz)}
+                  data-tooltip={`Size: ${sz.toUpperCase()}`}
+                >
+                  {sz.toUpperCase()}
+                </button>
+              ))}
+            </div>
+
+            {/* Edit Mode Toggle Pill */}
+            <div className="x-pres-control-pill">
+              <button
+                className={`x-pres-control-btn ${editMode ? "active" : ""}`}
+                style={editMode ? { background: scene.accentColor } : {}}
+                onClick={() => setEditMode(!editMode)}
+                data-tooltip="Toggle Layout Edit Mode"
+              >
+                ✎
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Slide text — bespoke per-slide placement, see SlidePanels.tsx */}
+      {textMode !== "none" && (
+        <SlidePanels
+          ref={panelRef}
+          scene={scene}
+          language={language}
+          mode={textMode}
+          sizeScale={panelSize === "md" ? 0.85 : panelSize === "sm" ? 0.7 : 1}
+          fontEn={override.fontEn || FONTS_EN[0].family}
+          fontHe={override.fontHe || FONTS_HE[0].family}
+          offsetX={override.x}
+          offsetY={override.y}
+          widthPx={override.width}
+          showBorder={override.border !== false}
+        />
+      )}
+
+      {/* Edit Mode Toolbar */}
+      {editMode && (
+        <EditToolbar
+          sceneIndex={currentScene}
+          overrides={panelOverrides}
+          onUpdate={updatePanelOverride}
+          accentColor={scene.accentColor}
+          onPositionPreset={handlePositionPreset}
+          textBoxes={textBoxes[currentScene] || []}
+          onAddTextBox={handleAddTextBox}
+          onUpdateTextBox={handleUpdateTextBox}
+          onDeleteTextBox={handleDeleteTextBox}
+          selectedTextBox={selectedTextBox}
+          onSelectTextBox={setSelectedTextBox}
+        />
+      )}
+
+      {/* Active Transition Overlay */}
+      {activeTransition && (
+        <Suspense fallback={null}>
+          {transitionVersion === "A" && (
+            <DeadDropTransition
+              key={activeTransition.key}
+              fromScene={scenes[activeTransition.fromIndex]}
+              toScene={scenes[activeTransition.toIndex]}
+              direction={activeTransition.direction}
+              prevVideoRef={{ current: videoBgRef.current?.prevVideoEl ?? null }}
+              currentVideoRef={{ current: videoBgRef.current?.currentVideoEl ?? null }}
+              onVideoSwitch={handleVideoSwitch}
+              onComplete={handleTransitionComplete}
+            />
+          )}
+          {transitionVersion === "B" && (
+            <OrbitalTransition
+              key={activeTransition.key}
+              fromScene={scenes[activeTransition.fromIndex]}
+              toScene={scenes[activeTransition.toIndex]}
+              direction={activeTransition.direction}
+              prevVideoRef={{ current: videoBgRef.current?.prevVideoEl ?? null }}
+              currentVideoRef={{ current: videoBgRef.current?.currentVideoEl ?? null }}
+              onVideoSwitch={handleVideoSwitch}
+              onComplete={handleTransitionComplete}
+            />
+          )}
+          {transitionVersion === "C" && (
+            <ConsensusTransition
+              key={activeTransition.key}
+              fromScene={scenes[activeTransition.fromIndex]}
+              toScene={scenes[activeTransition.toIndex]}
+              direction={activeTransition.direction}
+              prevVideoRef={{ current: videoBgRef.current?.prevVideoEl ?? null }}
+              currentVideoRef={{ current: videoBgRef.current?.currentVideoEl ?? null }}
+              onVideoSwitch={handleVideoSwitch}
+              onComplete={handleTransitionComplete}
+            />
+          )}
+        </Suspense>
+      )}
+    </main>
+  );
+}

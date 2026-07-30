@@ -1,0 +1,325 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   HATIVA — SLIDE PANELS
+   Bespoke per-slide text placement. Two archetypes:
+     .hp-band   header bar in the empty sky + bullets band over the plinth
+     .hp-sides  English card left / Hebrew card right, artwork between them
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.hp-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+}
+
+/* ─── Card shell ──────────────────────────────────────────────────── */
+
+.hp-card {
+  position: absolute;
+  box-sizing: border-box;
+  pointer-events: auto;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(31, 42, 56, 0.14);
+  border-radius: 8px;
+  box-shadow: none;
+  color: #3e5470;
+  overflow: hidden;
+}
+
+/* The user-facing rule: no drop shadow on the boxes, none on the text. */
+.hp-card,
+.hp-card * {
+  text-shadow: none;
+}
+
+.hp-card.hp-no-border {
+  border-color: transparent;
+}
+
+/* ─── Typography ──────────────────────────────────────────────────── */
+
+.hp-eyebrow {
+  font-family: var(--x-pres-font-mono, "JetBrains Mono", monospace);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #b87514;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hp-title {
+  color: #1f2a38;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.24;
+  margin: 0;
+  text-transform: none;
+}
+
+.hp-bullets {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.hp-bullets li {
+  display: flex;
+  gap: 0.45rem;
+  align-items: flex-start;
+  line-height: 1.45;
+  color: #3e5470;
+}
+
+.hp-bullets li + li {
+  margin-top: 0.4rem;
+}
+
+.hp-marker {
+  color: #00a8bd;
+  font-weight: 700;
+  flex: none;
+  line-height: 1.45;
+}
+
+.hp-rule {
+  border: 0;
+  border-top: 1px solid rgba(31, 42, 56, 0.12);
+  margin: 0;
+}
+
+.hp-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  font-family: var(--x-pres-font-mono, "JetBrains Mono", monospace);
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+}
+
+.hp-foot-label {
+  color: #0e7c8a;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.hp-foot-meta {
+  color: #7d8ea1;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── Bilingual split ─────────────────────────────────────────────── */
+
+.hp-split {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  gap: 1.15rem;
+  align-items: start;
+}
+
+.hp-divider {
+  align-self: stretch;
+  background: rgba(31, 42, 56, 0.12);
+}
+
+.hp-en {
+  direction: ltr;
+  text-align: left;
+}
+
+.hp-he {
+  direction: rtl;
+  text-align: right;
+}
+
+/* ─── Archetype: band ─────────────────────────────────────────────── */
+
+.hp-header {
+  padding: 0.5rem 1.1rem 0.55rem;
+}
+
+.hp-header .hp-eyebrow-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 0.3rem;
+}
+
+.hp-header .hp-title {
+  font-size: clamp(0.9rem, 1.12vw, 1.22rem);
+}
+
+.hp-header .hp-split {
+  gap: 1.15rem;
+}
+
+.hp-body {
+  padding: 0.8rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.hp-body .hp-bullets li {
+  font-size: clamp(0.7rem, 0.8vw, 0.84rem);
+}
+
+/* ─── Archetype: sides ────────────────────────────────────────────── */
+
+.hp-side {
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0.95rem 1rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  max-height: 84vh;
+}
+
+.hp-side .hp-title {
+  font-size: clamp(0.85rem, 0.98vw, 1.08rem);
+}
+
+.hp-side .hp-bullets li {
+  font-size: clamp(0.68rem, 0.76vw, 0.8rem);
+}
+
+/* Hebrew-only: mirror the chrome rows so they follow the copy. */
+.hp-card.hp-rtl-chrome .hp-eyebrow-row,
+.hp-card.hp-rtl-chrome .hp-foot {
+  direction: rtl;
+}
+
+/* ─── Header-only mode ────────────────────────────────────────────── */
+
+/* With the bullets gone there is room to let the titles carry the slide. */
+.hp-mode-header.hp-header {
+  padding: 0.7rem 1.2rem 0.8rem;
+}
+
+.hp-mode-header.hp-header .hp-title {
+  font-size: clamp(1.05rem, 1.42vw, 1.6rem);
+}
+
+.hp-mode-header.hp-side {
+  padding: 1.05rem 1.05rem 1.1rem;
+  gap: 0.45rem;
+}
+
+.hp-mode-header.hp-side .hp-title {
+  font-size: clamp(1rem, 1.22vw, 1.38rem);
+}
+
+/* ─── Hover to unfurl the full text ───────────────────────────────── */
+
+/* 0fr -> 1fr animates to the content's natural height; a max-height
+   transition would need a magic number and would ease unevenly. */
+.hp-expandable {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  margin-top: 0;
+  transition: grid-template-rows 280ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 200ms ease, margin-top 280ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hp-expandable-inner {
+  overflow: hidden;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.hp-card:hover > .hp-expandable,
+.hp-card:focus-within > .hp-expandable {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  margin-top: 0.6rem;
+}
+
+/* Expanded copy stays at reading size even though the title is enlarged. */
+.hp-mode-header .hp-expandable .hp-bullets li {
+  font-size: clamp(0.7rem, 0.8vw, 0.84rem);
+}
+
+.hp-mode-header.hp-side .hp-expandable .hp-bullets li {
+  font-size: clamp(0.68rem, 0.76vw, 0.8rem);
+}
+
+/* The unfurled card is the one element allowed to sit over the artwork, so it
+   leans a little more opaque to stay readable, and lifts above its siblings. */
+.hp-mode-header:hover {
+  background: rgba(255, 255, 255, 0.92);
+  z-index: 1;
+}
+
+/* A hovered side card grows about its own centre and must not run off-screen. */
+.hp-mode-header.hp-side {
+  max-height: 92vh;
+  overflow-y: auto;
+  /* The flex gap would leave dead space under the title while collapsed, so
+     spacing is handed to the children (and to .hp-expandable's own margin). */
+  gap: 0;
+}
+
+.hp-mode-header.hp-side .hp-eyebrow {
+  margin-bottom: 0.4rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hp-expandable {
+    transition-duration: 0.01ms;
+  }
+}
+
+/* ─── Narrow viewports: collapse to one readable bottom card ──────── */
+
+@media (max-width: 1024px) {
+  .hp-card {
+    left: 16px !important;
+    right: 16px !important;
+    width: auto !important;
+    top: auto !important;
+    transform: none !important;
+    max-height: none !important;
+  }
+
+  .hp-header {
+    bottom: auto !important;
+    top: 16px !important;
+  }
+
+  .hp-body {
+    bottom: 16px !important;
+  }
+
+  /* Sides collapse to a top (English) / bottom (Hebrew) stack. */
+  .hp-side-en {
+    top: 16px !important;
+    bottom: auto !important;
+  }
+
+  .hp-side-he {
+    bottom: 16px !important;
+    top: auto !important;
+  }
+
+  .hp-split {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+
+  .hp-divider {
+    display: none;
+  }
+}

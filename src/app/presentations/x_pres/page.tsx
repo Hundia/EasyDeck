@@ -15,6 +15,7 @@ type Language = "both" | "en" | "he";
 type PanelPosition = "bottom-left" | "bottom-right" | "bottom-center" | "top-left" | "top-right";
 type MediaMode = "image" | "video";
 type TransitionVersion = "A" | "B" | "C";
+type PanelSize = "lg" | "md" | "sm";
 
 interface Scene {
   id: number;
@@ -26,6 +27,8 @@ interface Scene {
   descriptionHe: string;
   image: string;
   video?: string;
+  videoFit?: "cover" | "contain";
+  hidePanel?: boolean;
   accentColor: string;
   hudLabel: string;
   dataLine?: string;
@@ -78,6 +81,7 @@ const scenes: Scene[] = [
       "עמוק בתוך חדר מצב מבוצר, מסכים רבים מהבהבים עם התרעת מודיעין חדשה. קצינים מפנים תשומת לבם לאיום.",
     image: "/presentations/x_pres/frames/frame-0002.webp",
     video: "/presentations/x_pres/videos/2.mp4",
+    videoFit: "contain",
     accentColor: "#00D4FF",
     hudLabel: "SCENE 02 // ALERT TRIGGERED",
     dataLine: "STATUS: C4I ACTIVE | THREAT LEVEL: ELEVATED",
@@ -112,6 +116,7 @@ const scenes: Scene[] = [
       "המפקד סוקר את ממצאי המודיעין. המיקום אושר, האיום מאומת. ההחלטה מתקבלת: לשגר רחפנים ליירוט.",
     image: "/presentations/x_pres/frames/frame-0007.webp",
     video: "/presentations/x_pres/videos/4.mp4",
+    videoFit: "contain",
     accentColor: "#FFB830",
     hudLabel: "SCENE 04 // AUTHORITY CONFIRMED",
     dataLine: "OPERATION AUTHORITY: CONFIRMED | BIOMETRIC: VERIFIED",
@@ -146,6 +151,7 @@ const scenes: Scene[] = [
       "התקשורת עם הרחפנים נותקה. מערך הסייבר הלאומי מזהה מתקפת סייבר מתואמת — הפרעת RF בשילוב חדירה לרשת התקשורת.",
     image: "/presentations/x_pres/frames/frame-0009.webp",
     video: "/presentations/x_pres/videos/6.mp4",
+    videoFit: "contain",
     accentColor: "#FF2E3B",
     hudLabel: "SCENE 06 // BREACH DETECTED",
     dataLine: "⚠ COMM LINK SEVERED | VECTOR: RF JAM + NETWORK INTRUSION",
@@ -180,6 +186,7 @@ const scenes: Scene[] = [
       "התקשורת עם הרחפנים שוחזרה. חיישני VISINT ננעלים על המטרה. צילומי מעקב חדים זורמים לפיקוד — וודאות 96.4%.",
     image: "/presentations/x_pres/frames/frame-0010.webp",
     video: "/presentations/x_pres/videos/8.mp4",
+    videoFit: "contain",
     accentColor: "#00D4FF",
     hudLabel: "SCENE 08 // TRACKING ACTIVE",
     dataLine: "TGT-001 | CONFIDENCE: 96.4% | SPEED: 1.2 m/s | DIST: 3.7km",
@@ -197,43 +204,10 @@ const scenes: Scene[] = [
       "שלושה רחפנים מתכנסים במשולש. זרקורים מאירים מלמעלה. מוקף, ללא מנוס — המטרה כורעת על ברכיו.",
     image: "/presentations/x_pres/frames/frame-0011.webp",
     video: "/presentations/x_pres/videos/9.mp4",
+    videoFit: "contain",
     accentColor: "#00E676",
     hudLabel: "SCENE 09 // TARGET NEUTRALIZED",
     dataLine: "FORMATION: TRIANGLE | STATUS: SURRENDERED | THREAT: CONTAINED",
-    panelPosition: "bottom-left",
-  },
-  {
-    id: 10,
-    part: "PART 10 — AI ANALYSIS",
-    partHe: "חלק 10 — ניתוח AI",
-    titleEn: "AI INVESTIGATION FRAMEWORK",
-    titleHe: "מסגרת חקירת בינה מלאכותית",
-    descriptionEn:
-      "Back at HQ — the Agent-to-Agent AI framework ingests all operational data. Multiple AI agents collaborate autonomously to investigate the full operation.",
-    descriptionHe:
-      "חזרה למטה — מסגרת ה-AI סוכן-לסוכן מעבדת את כל הנתונים המבצעיים. סוכני AI מרובים משתפים פעולה באופן אוטונומי לחקירת המבצע.",
-    image: "/presentations/x_pres/frames/frame-0005.webp",
-    video: "/presentations/x_pres/videos/10.mp4",
-    accentColor: "#3D7BFF",
-    hudLabel: "SCENE 10 // AGENTS ACTIVE",
-    dataLine: "AGENTS: 5 ACTIVE | DATA: 2.4TB PROCESSED | ANOMALIES: 3 FLAGGED",
-    panelPosition: "bottom-right",
-  },
-  {
-    id: 11,
-    part: "PART 11 — FINDINGS",
-    partHe: "חלק 11 — ממצאים",
-    titleEn: "AI FINDINGS DASHBOARD",
-    titleHe: "לוח ממצאי הבינה המלאכותית",
-    descriptionEn:
-      "Investigation complete. A conversational AI agent presents findings through interactive visual dashboards — timelines, entity maps, root cause analysis.",
-    descriptionHe:
-      "החקירה הושלמה. סוכן שיחה מציג ממצאים דרך לוחות מחוונים ויזואליים אינטראקטיביים — צירי זמן, מפות ישויות, ניתוח שורש.",
-    image: "/presentations/x_pres/frames/frame-0012.webp",
-    video: "/presentations/x_pres/videos/11.mp4",
-    accentColor: "#00D4FF",
-    hudLabel: "SCENE 11 // FINDINGS COMPLETE",
-    dataLine: "THREAT GROUP: VORTEX-7 | CONFIDENCE: 91% | VECTORS: 2 IDENTIFIED",
     panelPosition: "bottom-left",
   },
   {
@@ -263,9 +237,66 @@ const scenes: Scene[] = [
     descriptionHe:
       "התשתית הטכנולוגית שלנו — מתשתיות ענן ומסגרות בינה מלאכותית ועד צינורות נתונים בזמן אמת ומחשוב קצה.",
     image: "/presentations/x_pres/frames/frame-techstack.webp",
+    video: "/presentations/x_pres/videos/techstack.mp4",
+    videoFit: "contain",
+    hidePanel: true,
     accentColor: "#3D7BFF",
     hudLabel: "SCENE 13 // TECHNOLOGY FOUNDATION",
     dataLine: "CLOUD | AI/ML | REAL-TIME | EDGE COMPUTING",
+    panelPosition: "bottom-left",
+  },
+  {
+    id: 17,
+    part: "AI INSIDE",
+    partHe: "בינה מלאכותית בפנים",
+    titleEn: "AI INSIDE",
+    titleHe: "AI Inside",
+    descriptionEn:
+      "Artificial intelligence woven into every layer — from automated analysis and predictive models to real-time decision support.",
+    descriptionHe:
+      "בינה מלאכותית שזורה בכל שכבה — מניתוח אוטומטי ומודלים חזויים ועד תמיכה בהחלטות בזמן אמת.",
+    image: "/presentations/x_pres/frames/frame-ai-inside.webp",
+    video: "/presentations/x_pres/videos/ai-inside.mp4",
+    videoFit: "contain",
+    hidePanel: true,
+    accentColor: "#A855F7",
+    hudLabel: "SCENE 14 // AI INSIDE",
+    dataLine: "ML MODELS | NLP | COMPUTER VISION | DECISION ENGINES",
+    panelPosition: "bottom-left",
+  },
+  {
+    id: 10,
+    part: "PART 10 — AI ANALYSIS",
+    partHe: "חלק 10 — ניתוח AI",
+    titleEn: "AI INVESTIGATION FRAMEWORK",
+    titleHe: "מסגרת חקירת בינה מלאכותית",
+    descriptionEn:
+      "Back at HQ — the Agent-to-Agent AI framework ingests all operational data. Multiple AI agents collaborate autonomously to investigate the full operation.",
+    descriptionHe:
+      "חזרה למטה — מסגרת ה-AI סוכן-לסוכן מעבדת את כל הנתונים המבצעיים. סוכני AI מרובים משתפים פעולה באופן אוטונומי לחקירת המבצע.",
+    image: "/presentations/x_pres/frames/frame-0005.webp",
+    video: "/presentations/x_pres/videos/10.mp4",
+    videoFit: "contain",
+    accentColor: "#3D7BFF",
+    hudLabel: "SCENE 10 // AGENTS ACTIVE",
+    dataLine: "AGENTS: 5 ACTIVE | DATA: 2.4TB PROCESSED | ANOMALIES: 3 FLAGGED",
+    panelPosition: "bottom-right",
+  },
+  {
+    id: 11,
+    part: "PART 11 — FINDINGS",
+    partHe: "חלק 11 — ממצאים",
+    titleEn: "AI FINDINGS DASHBOARD",
+    titleHe: "לוח ממצאי הבינה המלאכותית",
+    descriptionEn:
+      "Investigation complete. A conversational AI agent presents findings through interactive visual dashboards — timelines, entity maps, root cause analysis.",
+    descriptionHe:
+      "החקירה הושלמה. סוכן שיחה מציג ממצאים דרך לוחות מחוונים ויזואליים אינטראקטיביים — צירי זמן, מפות ישויות, ניתוח שורש.",
+    image: "/presentations/x_pres/frames/frame-0012.webp",
+    video: "/presentations/x_pres/videos/11.mp4",
+    accentColor: "#00D4FF",
+    hudLabel: "SCENE 11 // FINDINGS COMPLETE",
+    dataLine: "THREAT GROUP: VORTEX-7 | CONFIDENCE: 91% | VECTORS: 2 IDENTIFIED",
     panelPosition: "bottom-left",
   },
   {
@@ -295,6 +326,7 @@ const scenes: Scene[] = [
     descriptionHe: "",
     image: "/presentations/x_pres/frames/frame-0014.webp",
     video: "/presentations/x_pres/videos/1.1.mp4",
+    videoFit: "contain",
     accentColor: "#00D4FF",
     hudLabel: "",
     panelPosition: "bottom-center",
@@ -442,6 +474,8 @@ export default function XPresPage() {
   const [prevVisible, setPrevVisible] = useState(false);
   const [autoplayProgress, setAutoplayProgress] = useState(0);
   const [mediaMode, setMediaMode] = useState<MediaMode>("video");
+  const [panelVisible, setPanelVisible] = useState(true);
+  const [panelSize, setPanelSize] = useState<PanelSize>("lg");
   const [transitionVersion, setTransitionVersion] = useState<TransitionVersion>("A");
   const [activeTransition, setActiveTransition] = useState<ActiveTransition | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -549,17 +583,22 @@ export default function XPresPage() {
   useEffect(() => {
     let loaded = 0;
     const total = scenes.length;
+    const markDone = () => {
+      loaded++;
+      setLoadProgress(Math.round((loaded / total) * 100));
+      if (loaded === total) setTimeout(() => setImagesLoaded(true), 400);
+    };
     scenes.forEach((scene) => {
       const img = new Image();
-      const onDone = () => {
-        loaded++;
-        setLoadProgress(Math.round((loaded / total) * 100));
-        if (loaded === total) setTimeout(() => setImagesLoaded(true), 400);
-      };
-      img.onload = onDone;
-      img.onerror = onDone;
+      img.onload = markDone;
+      img.onerror = markDone;
       img.src = scene.image;
     });
+    // Fallback: force-load after 5 seconds regardless
+    const fallback = setTimeout(() => {
+      if (!loaded || loaded < total) setImagesLoaded(true);
+    }, 5000);
+    return () => clearTimeout(fallback);
   }, []);
 
   // Keep currentSceneRef in sync
@@ -952,7 +991,7 @@ export default function XPresPage() {
                   <video
                     src={s.video}
                     muted autoPlay playsInline loop
-                    style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+                    style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: s.videoFit || "cover", objectPosition: "center center" }}
                   />
                 ) : (
                   <div
@@ -981,10 +1020,16 @@ export default function XPresPage() {
                 ) : s.titleEn === "THANK YOU" ? (
                   /* Thank You grid in continuous mode */
                   <ThankYouGrid mediaMode={mediaMode} language={language} />
-                ) : (
+                ) : s.hidePanel || !panelVisible ? null : (
                 <div
                   className={`x-pres-content ${s.panelPosition} ${isRTL ? "rtl" : ""}`}
-                  style={{ position: "absolute", opacity: isActive ? 1 : 0.4, transition: "opacity 0.5s" }}
+                  style={{
+                    position: "absolute",
+                    opacity: isActive ? 1 : 0.4,
+                    transition: "opacity 0.5s",
+                    transform: panelSize !== "lg" ? `scale(${panelSize === "md" ? 0.7 : 0.5})` : undefined,
+                    transformOrigin: s.panelPosition.includes("right") ? "bottom right" : s.panelPosition.includes("center") ? "bottom center" : "bottom left",
+                  }}
                 >
                   {sPart && <div className="x-pres-label" style={{ color: s.accentColor }}>{sPart}</div>}
                   <h1 className="x-pres-title">
@@ -1040,6 +1085,7 @@ export default function XPresPage() {
               currentSrc={scene.video}
               prevSrc={prevVideo}
               prevVisible={prevVisible}
+              objectFit={scene.videoFit || "cover"}
             />
           ) : mediaMode === "video" && !scene.video ? (
             <div
@@ -1135,18 +1181,22 @@ export default function XPresPage() {
           </div>
 
           {/* Content Panel */}
-          {title && !isOpeningSlide && !isThankYou && (() => {
+          {title && !isOpeningSlide && !isThankYou && !scene.hidePanel && panelVisible && (() => {
             const override = panelOverrides[currentScene] || {};
             const overridePos = (override as PanelOverride & { position?: string }).position;
             const panelPos = overridePos || scene.panelPosition;
-            const panelStyle: React.CSSProperties = {};
+            const sizeScale = panelSize === "md" ? 0.7 : panelSize === "sm" ? 0.5 : 1;
+            const panelStyle: React.CSSProperties = {
+              transform: sizeScale < 1 ? `scale(${sizeScale})` : undefined,
+              transformOrigin: panelPos.includes("right") ? "bottom right" : panelPos.includes("center") ? "bottom center" : "bottom left",
+            };
             if (override.width) panelStyle.width = override.width;
             if (override.x !== undefined && override.y !== undefined) {
               panelStyle.left = override.x;
               panelStyle.top = override.y;
               panelStyle.right = "auto";
               panelStyle.bottom = "auto";
-              panelStyle.transform = "none";
+              panelStyle.transform = sizeScale < 1 ? `scale(${sizeScale})` : "none";
             }
             const borderClass = override.border === false ? "no-border" : "";
             const editClass = editMode ? "edit-active" : "";
@@ -1242,11 +1292,11 @@ export default function XPresPage() {
             position: "absolute", bottom: 50, left: 50, zIndex: 80,
             fontFamily: "var(--x-pres-font-mono)", display: "flex", alignItems: "baseline", gap: 4,
           }}>
-            <span style={{ fontSize: 32, fontWeight: 700, color: scene.accentColor, textShadow: `0 0 12px ${scene.accentColor}` }}>
+            <span style={{ fontSize: 32, fontWeight: 700, color: scene.accentColor, textShadow: `0 0 12px ${scene.accentColor}, 0 2px 8px rgba(0,0,0,0.8)` }}>
               {String(displayNum).padStart(2, "0")}
             </span>
-            <span style={{ fontSize: 18, color: "#64748B" }}>/</span>
-            <span style={{ fontSize: 14, color: "#64748B" }}>{String(contentSlides.length).padStart(2, "0")}</span>
+            <span style={{ fontSize: 18, color: "#94A3B8", textShadow: "0 2px 8px rgba(0,0,0,0.8)" }}>/</span>
+            <span style={{ fontSize: 14, color: "#94A3B8", textShadow: "0 2px 8px rgba(0,0,0,0.8)" }}>{String(contentSlides.length).padStart(2, "0")}</span>
           </div>
             );
           })()}
@@ -1398,6 +1448,50 @@ export default function XPresPage() {
             aria-label="Video mode"
           >
             🎬
+          </button>
+        </div>
+
+        {/* Panel Visibility Pill */}
+        <div className="x-pres-control-pill">
+          <button
+            className={`x-pres-control-btn ${panelVisible ? "active" : ""}`}
+            style={panelVisible ? { background: scene.accentColor } : {}}
+            onClick={() => setPanelVisible(!panelVisible)}
+            data-tooltip={panelVisible ? "Hide text" : "Show text"}
+            aria-label="Toggle text panel"
+          >
+            {panelVisible ? "👁" : "👁‍🗨"}
+          </button>
+        </div>
+
+        {/* Panel Size Pill */}
+        <div className="x-pres-control-pill">
+          <button
+            className={`x-pres-control-btn ${panelSize === "lg" ? "active" : ""}`}
+            style={panelSize === "lg" ? { background: scene.accentColor } : {}}
+            onClick={() => setPanelSize("lg")}
+            data-tooltip="Large text"
+            aria-label="Large panel"
+          >
+            L
+          </button>
+          <button
+            className={`x-pres-control-btn ${panelSize === "md" ? "active" : ""}`}
+            style={panelSize === "md" ? { background: scene.accentColor } : {}}
+            onClick={() => setPanelSize("md")}
+            data-tooltip="Medium text"
+            aria-label="Medium panel"
+          >
+            M
+          </button>
+          <button
+            className={`x-pres-control-btn ${panelSize === "sm" ? "active" : ""}`}
+            style={panelSize === "sm" ? { background: scene.accentColor } : {}}
+            onClick={() => setPanelSize("sm")}
+            data-tooltip="Small text"
+            aria-label="Small panel"
+          >
+            S
           </button>
         </div>
 

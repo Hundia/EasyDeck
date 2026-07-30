@@ -14,10 +14,11 @@ interface Props {
   currentSrc: string;
   prevSrc: string;
   prevVisible: boolean;
+  objectFit?: "cover" | "contain";
 }
 
 const VideoBackground = forwardRef<VideoBackgroundHandle, Props>(
-  ({ currentSrc, prevSrc, prevVisible }, ref) => {
+  ({ currentSrc, prevSrc, prevVisible, objectFit = "cover" }, ref) => {
     const currentRef = useRef<HTMLVideoElement>(null);
     const prevRef = useRef<HTMLVideoElement>(null);
 
@@ -81,7 +82,8 @@ const VideoBackground = forwardRef<VideoBackgroundHandle, Props>(
             inset: 0,
             width: "100%",
             height: "100%",
-            objectFit: "cover",
+            objectFit,
+            objectPosition: "center center",
             zIndex: 1,
             opacity: prevVisible ? 1 : 0,
             transition: "none",
@@ -100,7 +102,8 @@ const VideoBackground = forwardRef<VideoBackgroundHandle, Props>(
             inset: 0,
             width: "100%",
             height: "100%",
-            objectFit: "cover",
+            objectFit,
+            objectPosition: "center center",
             zIndex: 2,
           }}
         />

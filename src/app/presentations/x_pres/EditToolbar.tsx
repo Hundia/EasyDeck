@@ -52,37 +52,41 @@ export const FONTS_HE = [
 
 export const ALL_FONTS = [...FONTS_EN, ...FONTS_HE] as const;
 
-const STORAGE_KEY = "x-pres-panel-overrides";
-const TEXTBOX_STORAGE_KEY = "x-pres-extra-textboxes";
+const DEFAULT_STORAGE_KEY = "x-pres-panel-overrides";
+const DEFAULT_TEXTBOX_STORAGE_KEY = "x-pres-extra-textboxes";
 
-export function loadOverrides(): PanelOverrides {
+export function loadOverrides(prefix = "x-pres"): PanelOverrides {
   if (typeof window === "undefined") return {};
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const key = `${prefix}-panel-overrides`;
+    const raw = localStorage.getItem(key);
     return raw ? JSON.parse(raw) : {};
   } catch {
     return {};
   }
 }
 
-export function saveOverrides(overrides: PanelOverrides): void {
+export function saveOverrides(overrides: PanelOverrides, prefix = "x-pres"): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(overrides));
+  const key = `${prefix}-panel-overrides`;
+  localStorage.setItem(key, JSON.stringify(overrides));
 }
 
-export function loadTextBoxes(): TextBoxes {
+export function loadTextBoxes(prefix = "x-pres"): TextBoxes {
   if (typeof window === "undefined") return {};
   try {
-    const raw = localStorage.getItem(TEXTBOX_STORAGE_KEY);
+    const key = `${prefix}-extra-textboxes`;
+    const raw = localStorage.getItem(key);
     return raw ? JSON.parse(raw) : {};
   } catch {
     return {};
   }
 }
 
-export function saveTextBoxes(boxes: TextBoxes): void {
+export function saveTextBoxes(boxes: TextBoxes, prefix = "x-pres"): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem(TEXTBOX_STORAGE_KEY, JSON.stringify(boxes));
+  const key = `${prefix}-extra-textboxes`;
+  localStorage.setItem(key, JSON.stringify(boxes));
 }
 
 /* ─── Edit Toolbar Component ─────────────────────────────────────── */

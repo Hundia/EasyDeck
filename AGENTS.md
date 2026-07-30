@@ -277,6 +277,23 @@ const { story } = createPresentation({
 
 ---
 
+## Production Deployment (`hundia.casa`)
+
+- **Public Base URL**: `https://hundia.casa/presentations/<slug>` (e.g. `/presentations/x_pres`, `/presentations/hativa`)
+- **Node/Next Server**: Listening on `http://127.0.0.1:3848`
+- **Systemd Daemon**: `easydeck-pres.service` (`/etc/systemd/system/easydeck-pres.service`)
+- **Nginx Config**: `/etc/nginx/sites-enabled/hundia.casa`
+  - All `/presentations/` traffic proxies directly to `127.0.0.1:3848`.
+- **Deploying New Presentations**:
+  ```bash
+  npm run type-check               # Verify types
+  npm run build                    # Build production bundle
+  systemctl restart easydeck-pres  # Restart systemd server
+  curl -I https://hundia.casa/presentations/<slug>  # Verify 200 OK
+  ```
+
+---
+
 ## Documentation
 
 - Full docs: `docs/` directory

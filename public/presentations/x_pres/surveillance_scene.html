@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Surveillance Scene</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #000; font-family: 'Courier New', monospace; overflow: hidden; }
+
+  .wrapper {
+    width: 1340px;
+    height: 780px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: #000;
+  }
+
+  /* ── TOP: Drone feed ── */
+  .drone-feed {
+    position: relative;
+    flex: 1.1;
+    overflow: hidden;
+    background: #0a1a0a;
+  }
+
+  .terrain-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .hud-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .hud-top-left {
+    position: absolute;
+    top: 10px;
+    left: 12px;
+    color: #00ff41;
+    font-size: 13px;
+    line-height: 1.7;
+    text-shadow: 0 0 6px #00ff4188;
+  }
+
+  .hud-top-left .title-bar {
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    border: 1px solid #00ff41;
+    padding: 2px 8px;
+    margin-bottom: 4px;
+    background: rgba(0,255,65,0.08);
+  }
+
+  /* Crosshair / tracking box */
+  .tracking-box {
+    position: absolute;
+    top: 50%;
+    left: 52%;
+    transform: translate(-50%, -60%);
+    width: 120px;
+    height: 140px;
+  }
+
+  .corner {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-color: #00ff41;
+    border-style: solid;
+    box-shadow: 0 0 8px #00ff41;
+  }
+  .corner.tl { top: 0; left: 0;   border-width: 2px 0 0 2px; }
+  .corner.tr { top: 0; right: 0;  border-width: 2px 2px 0 0; }
+  .corner.bl { bottom: 0; left: 0;  border-width: 0 0 2px 2px; }
+  .corner.br { bottom: 0; right: 0; border-width: 0 2px 2px 0; }
+
+  .crosshair-h {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30px; height: 1px;
+    background: #00ff41;
+    box-shadow: 0 0 4px #00ff41;
+  }
+  .crosshair-v {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 1px; height: 30px;
+    background: #00ff41;
+    box-shadow: 0 0 4px #00ff41;
+  }
+
+  .tracking-label {
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #00ff41;
+    font-size: 10px;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    text-shadow: 0 0 4px #00ff41;
+  }
+
+  /* Compass rose */
+  .compass {
+    position: absolute;
+    top: 14px;
+    right: 60px;
+    color: #00ff41;
+    font-size: 11px;
+    text-align: center;
+    text-shadow: 0 0 5px #00ff4166;
+  }
+
+  /* Bottom bar */
+  .hud-bottom {
+    position: absolute;
+    bottom: 8px;
+    left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 14px;
+    color: #00ff41;
+    font-size: 11px;
+    text-shadow: 0 0 4px #00ff41;
+    border-top: 1px solid rgba(0,255,65,0.2);
+    padding-top: 4px;
+  }
+
+  /* Scanline effect */
+  .scanlines {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.18) 2px,
+      rgba(0,0,0,0.18) 4px
+    );
+    pointer-events: none;
+  }
+
+  /* ── BOTTOM: Operator station ── */
+  .operator-station {
+    flex: 1;
+    position: relative;
+    background: #060c10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    padding: 0 40px;
+    border-top: 1px solid #0d2d0d;
+  }
+
+  /* ambient glow */
+  .operator-station::before {
+    content: '';
+    position: absolute;
+    left: 35%;
+    top: 0; bottom: 0;
+    width: 260px;
+    background: radial-gradient(ellipse at center, rgba(0,80,160,0.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* Silhouette operator */
+  .operator-silhouette {
+    flex-shrink: 0;
+    width: 160px;
+    height: 220px;
+    position: relative;
+    margin-right: 10px;
+  }
+
+  /* Monitors */
+  .monitors {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    margin-top: -10px;
+  }
+
+  .monitor {
+    background: #0a1a0a;
+    border: 2px solid #1a3a1a;
+    position: relative;
+    box-shadow: 0 0 14px rgba(0,255,65,0.15), inset 0 0 20px rgba(0,0,0,0.5);
+  }
+
+  .monitor-main {
+    width: 280px;
+    height: 200px;
+  }
+
+  .monitor-side {
+    width: 210px;
+    height: 200px;
+  }
+
+  .monitor canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* status panel */
+  .status-panel {
+    width: 200px;
+    height: 200px;
+    background: #080f08;
+    border: 2px solid #1a3a1a;
+    padding: 14px;
+    color: #00ff41;
+    font-size: 13px;
+    line-height: 2;
+    box-shadow: 0 0 14px rgba(0,255,65,0.1);
+  }
+
+  .status-panel .status-title {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #00cc33;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #1a3a1a;
+    padding-bottom: 4px;
+  }
+
+  .status-panel .ok   { color: #00ff41; }
+  .status-panel .warn { color: #ffaa00; }
+  .status-panel .dot  { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+  .status-panel .dot.green { background: #00ff41; box-shadow: 0 0 5px #00ff41; }
+  .status-panel .dot.amber { background: #ffaa00; box-shadow: 0 0 5px #ffaa00; }
+
+  /* desk / console strip */
+  .console-strip {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 24px;
+    background: linear-gradient(to right, #0a0f0a, #111a11, #0a0f0a);
+    border-top: 1px solid #1a3a1a;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 10px;
+  }
+
+  .led { width: 6px; height: 6px; border-radius: 50%; }
+  .led.red   { background: #ff2200; box-shadow: 0 0 5px #ff2200; }
+  .led.green { background: #00ff41; box-shadow: 0 0 5px #00ff41; }
+  .led.amber { background: #ffaa00; box-shadow: 0 0 5px #ffaa00; }
+
+  .console-text {
+    color: #1a4a1a;
+    font-size: 9px;
+    letter-spacing: 3px;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .blink { animation: blink 1.2s infinite; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- ══ TOP: DRONE THERMAL/NV FEED ══ -->
+  <div class="drone-feed">
+    <canvas class="terrain-canvas" id="terrainCanvas" width="1340" height="320"></canvas>
+
+    <div class="hud-overlay">
+      <!-- HUD data block -->
+      <div class="hud-top-left">
+        <div class="title-bar">TGT-002 — TRACKING — CONFIDENCE 91.7%</div>
+        <div>N 34°18′12.3′′  W 117°41′55.08′′</div>
+        <div>BRG: 318°</div>
+        <div>SPD: 0.8 M/S</div>
+        <div>DST: 2.1 KM</div>
+        <div>ALT: 847 M</div>
+      </div>
+
+      <!-- Compass -->
+      <div class="compass">
+        <div>N</div>
+        <div>↑</div>
+        <div style="font-size:9px;letter-spacing:2px;">318°</div>
+      </div>
+
+      <!-- Tracking box on target -->
+      <div class="tracking-box">
+        <div class="corner tl"></div>
+        <div class="corner tr"></div>
+        <div class="corner bl"></div>
+        <div class="corner br"></div>
+        <div class="crosshair-h"></div>
+        <div class="crosshair-v"></div>
+        <div class="tracking-label blink">▶ LOCKED</div>
+      </div>
+
+      <!-- Bottom HUD bar -->
+      <div class="hud-bottom">
+        <span>MODE: NV-II</span>
+        <span>ZOOM: ×4.0</span>
+        <span>UTC 08:34:17</span>
+        <span>EAGLE-2</span>
+        <span>BATT: 78%</span>
+        <span>LINK: ████████░░ STRONG</span>
+      </div>
+
+      <div class="scanlines"></div>
+    </div>
+  </div>
+
+  <!-- ══ BOTTOM: OPERATOR STATION ══ -->
+  <div class="operator-station">
+
+    <!-- Operator SVG silhouette -->
+    <svg class="operator-silhouette" viewBox="0 0 160 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- glow behind -->
+      <ellipse cx="80" cy="130" rx="70" ry="80" fill="rgba(0,80,160,0.12)"/>
+      <!-- body/chair silhouette -->
+      <rect x="30" y="90" width="100" height="130" rx="6" fill="#0a141e"/>
+      <!-- torso -->
+      <ellipse cx="80" cy="110" rx="38" ry="45" fill="#0d1a10"/>
+      <!-- head with headset -->
+      <circle cx="80" cy="62" r="26" fill="#0d1a10"/>
+      <!-- headset arc -->
+      <path d="M55 56 Q80 30 105 56" stroke="#1a3a1a" stroke-width="5" fill="none"/>
+      <rect x="49" y="54" width="8" height="14" rx="3" fill="#152515"/>
+      <rect x="103" y="54" width="8" height="14" rx="3" fill="#152515"/>
+      <!-- face highlight -->
+      <ellipse cx="80" cy="64" rx="14" ry="16" fill="rgba(0,120,200,0.10)"/>
+      <!-- arm reaching to controls -->
+      <path d="M105 120 Q130 140 145 160" stroke="#0d1a10" stroke-width="22" stroke-linecap="round" fill="none"/>
+      <!-- joystick hand hint -->
+      <circle cx="148" cy="164" r="9" fill="#111f11"/>
+    </svg>
+
+    <!-- Monitors -->
+    <div class="monitors">
+      <!-- Main feed monitor (mirrors drone cam) -->
+      <div class="monitor monitor-main">
+        <canvas id="monitorCanvas" width="280" height="200"></canvas>
+      </div>
+
+      <!-- Secondary mini-monitor -->
+      <div class="monitor monitor-side">
+        <canvas id="miniCanvas" width="210" height="200"></canvas>
+      </div>
+
+      <!-- Status panel -->
+      <div class="status-panel">
+        <div class="status-title">SYSTEM STATUS</div>
+        <div class="ok"><span class="dot green"></span>EAGLE-2 ONLINE</div>
+        <div class="ok"><span class="dot green"></span>LINK: STRONG</div>
+        <div class="ok"><span class="dot green"></span>SENSOR ACTIVE</div>
+        <div class="warn blink"><span class="dot amber"></span>TGT MOVING</div>
+        <div class="ok"><span class="dot green"></span>RECORD: ON</div>
+        <div class="ok"><span class="dot green"></span>ENCRYPT: AES</div>
+      </div>
+    </div>
+
+    <!-- Console strip / desk -->
+    <div class="console-strip">
+      <div class="led red"></div>
+      <div class="led green"></div>
+      <div class="led green"></div>
+      <div class="led amber"></div>
+      <span class="console-text">UAV CONTROL STATION · MIL-STD-1553</span>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── Terrain / NV scene painter ──────────────────────────────────────────────
+function paintTerrain(canvas, scale = 1) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  // Sky gradient (night / NV green)
+  const sky = ctx.createLinearGradient(0, 0, 0, H * 0.35);
+  sky.addColorStop(0, '#010a01');
+  sky.addColorStop(1, '#041204');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, W, H);
+
+  // Ground gradient
+  const ground = ctx.createLinearGradient(0, H * 0.3, 0, H);
+  ground.addColorStop(0, '#061506');
+  ground.addColorStop(0.5, '#0a1e0a');
+  ground.addColorStop(1, '#040d04');
+  ctx.fillStyle = ground;
+  ctx.beginPath();
+  ctx.moveTo(0, H * 0.38);
+  ctx.lineTo(W, H * 0.32);
+  ctx.lineTo(W, H);
+  ctx.lineTo(0, H);
+  ctx.closePath();
+  ctx.fill();
+
+  // Rocky hills on horizon
+  ctx.fillStyle = '#071507';
+  const hills = [
+    [0,H*0.55,120,H*0.25], [100,H*0.5,200,H*0.28],
+    [280,H*0.52,160,H*0.26],[420,H*0.48,220,H*0.30],
+    [600,H*0.52,180,H*0.24],[750,H*0.50,240,H*0.28],
+    [950,H*0.52,190,H*0.25],[1100,H*0.50,260,H*0.28],
+  ];
+  hills.forEach(([x,y,w,h])=>{
+    ctx.beginPath();
+    ctx.ellipse(x+w/2, y+h*0.5, w*0.55, h*0.5, 0, 0, Math.PI*2);
+    ctx.fill();
+  });
+
+  // Rocks scattered
+  const rocks = [
+    [200,H*0.72,22,14],[350,H*0.78,30,18],[500,H*0.70,18,12],
+    [680,H*0.75,25,16],[820,H*0.68,20,12],[960,H*0.76,28,17],
+    [1100,H*0.72,22,13],[140,H*0.80,18,11],[750,H*0.82,24,15],
+    [430,H*0.65,16,10],[900,H*0.80,26,16],
+  ];
+  rocks.forEach(([x,y,rw,rh])=>{
+    ctx.fillStyle = `rgba(0,${40 + Math.random()*25|0},0,0.9)`;
+    ctx.beginPath();
+    ctx.ellipse(x, y, rw, rh, Math.random()*0.4, 0, Math.PI*2);
+    ctx.fill();
+  });
+
+  // Ground texture lines
+  ctx.strokeStyle = 'rgba(0,80,0,0.12)';
+  ctx.lineWidth = 1;
+  for(let i=0; i<18; i++){
+    ctx.beginPath();
+    ctx.moveTo(0, H*0.55 + i*14);
+    ctx.bezierCurveTo(W*0.3, H*0.52+i*14+6, W*0.7, H*0.56+i*14-4, W, H*0.54+i*14);
+    ctx.stroke();
+  }
+
+  // Target figure
+  const tx = W * 0.52, ty = H * 0.44;
+  // shadow
+  ctx.fillStyle = 'rgba(0,30,0,0.5)';
+  ctx.beginPath();
+  ctx.ellipse(tx+2, ty+62, 10, 4, 0, 0, Math.PI*2);
+  ctx.fill();
+  // body
+  ctx.fillStyle = '#0d2a0d';
+  ctx.fillRect(tx-7, ty+20, 14, 38);
+  // legs
+  ctx.fillRect(tx-6, ty+55, 5, 24);
+  ctx.fillRect(tx+1, ty+55, 5, 24);
+  // arms
+  ctx.fillRect(tx-14, ty+22, 7, 22);
+  ctx.fillRect(tx+7, ty+22, 7, 22);
+  // helmet head
+  ctx.beginPath();
+  ctx.ellipse(tx, ty+14, 10, 12, 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle = '#0f320f';
+  ctx.beginPath();
+  ctx.ellipse(tx, ty+10, 11, 7, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // NV grain
+  const imgd = ctx.getImageData(0, 0, W, H);
+  const d = imgd.data;
+  for(let i=0; i<d.length; i+=4){
+    const n = (Math.random()-0.5)*18;
+    d[i]   = Math.max(0,Math.min(255,d[i]+n*0.3));
+    d[i+1] = Math.max(0,Math.min(255,d[i+1]+n));
+    d[i+2] = Math.max(0,Math.min(255,d[i+2]+n*0.3));
+  }
+  ctx.putImageData(imgd, 0, 0);
+
+  // Vignette
+  const vig = ctx.createRadialGradient(W/2,H/2,H*0.2,W/2,H/2,H*0.85);
+  vig.addColorStop(0,'rgba(0,0,0,0)');
+  vig.addColorStop(1,'rgba(0,0,0,0.55)');
+  ctx.fillStyle = vig;
+  ctx.fillRect(0,0,W,H);
+}
+
+function paintMonitor(canvas) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  paintTerrain(canvas);
+  // smaller tracking box
+  const tx = W*0.52, ty = H*0.44;
+  const bw = 44, bh = 52;
+  ctx.strokeStyle = '#00ff41';
+  ctx.lineWidth = 1.5;
+  ctx.shadowColor = '#00ff41';
+  ctx.shadowBlur = 6;
+  // corners only
+  [[tx-bw/2,ty-bh/2,'tl'],[tx+bw/2,ty-bh/2,'tr'],[tx-bw/2,ty+bh/2,'bl'],[tx+bw/2,ty+bh/2,'br']].forEach(([x,y,t])=>{
+    ctx.beginPath();
+    if(t==='tl'){ ctx.moveTo(x+10,y); ctx.lineTo(x,y); ctx.lineTo(x,y+10); }
+    if(t==='tr'){ ctx.moveTo(x-10,y); ctx.lineTo(x,y); ctx.lineTo(x,y+10); }
+    if(t==='bl'){ ctx.moveTo(x+10,y); ctx.lineTo(x,y); ctx.lineTo(x,y-10); }
+    if(t==='br'){ ctx.moveTo(x-10,y); ctx.lineTo(x,y); ctx.lineTo(x,y-10); }
+    ctx.stroke();
+  });
+  ctx.shadowBlur = 0;
+  // label
+  ctx.fillStyle = '#00ff41';
+  ctx.font = '8px Courier New';
+  ctx.fillText('TGT-002', tx-14, ty+bh/2+12);
+}
+
+function paintMini(canvas) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  // top-down map style
+  const bg = ctx.createLinearGradient(0,0,W,H);
+  bg.addColorStop(0,'#020e02'); bg.addColorStop(1,'#040d04');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+  // grid
+  ctx.strokeStyle='rgba(0,80,0,0.3)'; ctx.lineWidth=0.5;
+  for(let x=0;x<W;x+=20){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for(let y=0;y<H;y+=20){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+  // terrain blobs
+  ctx.fillStyle='rgba(0,50,0,0.5)';
+  [[40,60,50,30],[100,100,60,35],[160,50,45,28],[60,140,55,30],[140,160,50,32]].forEach(([x,y,rx,ry])=>{
+    ctx.beginPath(); ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2); ctx.fill();
+  });
+  // drone icon
+  ctx.strokeStyle='#00ff41'; ctx.lineWidth=1.5;
+  ctx.shadowColor='#00ff41'; ctx.shadowBlur=8;
+  const dx=W*0.52, dy=H*0.44;
+  ctx.beginPath();
+  ctx.moveTo(dx,dy-10); ctx.lineTo(dx+8,dy+6); ctx.lineTo(dx,dy+2); ctx.lineTo(dx-8,dy+6); ctx.closePath();
+  ctx.stroke();
+  // target dot
+  ctx.fillStyle='#ff4400'; ctx.shadowColor='#ff4400'; ctx.shadowBlur=10;
+  ctx.beginPath(); ctx.arc(dx-20, dy+30, 4, 0, Math.PI*2); ctx.fill();
+  ctx.shadowBlur=0;
+  // range ring
+  ctx.strokeStyle='rgba(0,255,65,0.25)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.arc(dx,dy,40,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(dx,dy,80,0,Math.PI*2); ctx.stroke();
+  // labels
+  ctx.fillStyle='#00ff41'; ctx.font='8px Courier New'; ctx.shadowBlur=0;
+  ctx.fillText('UAV',dx+10,dy-6);
+  ctx.fillStyle='#ff6622'; ctx.fillText('TGT',dx-35,dy+25);
+  ctx.fillStyle='rgba(0,200,60,0.6)'; ctx.font='7px Courier New';
+  ctx.fillText('N',W/2,12); ctx.fillText('2.1KM',4,H-6);
+}
+
+// render
+paintTerrain(document.getElementById('terrainCanvas'));
+paintMonitor(document.getElementById('monitorCanvas'));
+paintMini(document.getElementById('miniCanvas'));
+</script>
+</body>
+</html>

@@ -59,54 +59,52 @@ const { story } = createPresentation({
 // Render: <Stage story={story} />
 ```
 
-## Transition Modes
+## Presentation Modes & Architectures
 
-| Mode | Behavior | Best For |
-|------|----------|----------|
-| `section` | One gesture = one scene (no scrollbar) | Keynotes, guided narratives |
-| `snap` | Scroll with magnetic snapping | Explorable content |
-| `scrub` | Direct scroll-to-frame mapping | Parallax, data stories |
+| Mode/Type | Behavior | Best For | Location |
+|------|----------|----------|----------|
+| `section` | One gesture = one scene (no scrollbar) | Keynotes, guided narratives | `<Stage story={story} />` |
+| `snap` | Scroll with magnetic snapping | Explorable content | `<Stage story={story} />` |
+| `scrub` | Direct scroll-to-frame mapping | Parallax, data stories | `<Stage story={story} />` |
+| `x_pres` / Custom | Cinematic bilingual scrollytelling with video/image toggle, edit toolbar, HUD | Full interactive briefings | `src/app/presentations/<slug>/page.tsx` |
 
-## AI Enhancement (Optional)
+## Creating New Presentations (e.g. `hativa`)
 
+When building a new presentation under `public/presentations/<name>`:
+1. Inspect images in `public/presentations/<name>/frames/` and videos in `public/presentations/<name>/videos/`.
+2. Define scene metadata in `src/app/presentations/<name>/page.tsx` with bilingual (EN/HE) titles and descriptions.
+3. Configure smart panel positions (`bottom-left`, `bottom-right`, `bottom-center`, etc.) so text overlays do not cover primary visual focal points.
+4. Include top-right controls for language (`EN`, `HE`, `Both`), scroll mode (`GSAP`, `Continuous`, `Autoplay`), and media mode (`Image`, `Video`).
+5. Run validation:
 ```bash
-export EASYDECK_AI_PROVIDER=gemini
-export GOOGLE_AI_KEY=your-key-here
-```
-
-```typescript
-import { createEnhancedPresentation } from '@/lib/pipeline';
-import { loadConfigFromEnv } from '@/lib/ai';
-
-const result = await createEnhancedPresentation(brief, loadConfigFromEnv());
-```
-
-## Project Structure
-
-- `src/components/Stage.tsx` — Main rendering component
-- `src/lib/pipeline/` — ContentBrief → StorySchema pipeline
-- `src/lib/schemas/` — Zod validation schemas
-- `src/lib/ai/` — Multi-provider LLM abstraction
-- `src/lib/a11y/` — Accessibility utilities
-- `docs/` — Full documentation
-
-## Commands
-
-```bash
-npm run dev          # Dev server (localhost:3000)
-npm run build        # Production build
-npm test             # Run all tests
-npm run type-check   # TypeScript validation
+npm run type-check   # Must pass without TypeScript errors
+npm test             # Verify existing pipeline tests
 ```
 
 ## Key Rules
 
-- Never bypass Zod validation
+- Never bypass Zod validation when using `createPresentation` / `createEnhancedPresentation`
 - Section mode requires frame-contiguous scenes
 - Playhead is a ref (mutate `.frame`, don't replace)
 - Support `prefers-reduced-motion`
 - TypeScript strict — no `any` types
+- Hebrew support must use proper RTL styling and military/technical terminology
+
+## Production Environment & Deployment (`hundia.casa`)
+
+- **Public URL Pattern**: `https://hundia.casa/presentations/<slug>`
+- **Local Proxy Port**: `http://127.0.0.1:3848`
+- **Systemd Service**: `easydeck-pres.service`
+- **Nginx Config**: `/etc/nginx/sites-enabled/hundia.casa`
+  - Routes `location ^~ /presentations/` directly to Next.js on port `3848`.
+- **Deploying Updates**:
+  1. `npm run type-check`
+  2. `npm run build`
+  3. `systemctl restart easydeck-pres`
+  4. Verify: `curl -I https://hundia.casa/presentations/<slug>`
 
 ## More Info
 
-See `AGENTS.md` for the complete workflow guide with full examples and project structure map.
+See `AGENTS.md` and `.agents/skills/easydeck-presentation/SKILL.md` for complete reference.
+
+

@@ -39,3 +39,7 @@ next-env.d.ts
 e2e-results/
 playwright-report/
 .superpowers/
+
+# Media / Videos
+*.mp4
+

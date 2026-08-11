@@ -27,9 +27,9 @@ import "../x_pres/styles.css";
 type ScrollMode = "gsap" | "continuous" | "autoplay";
 type Language = "both" | "en" | "he";
 type MediaMode = "image" | "video";
-/** How much slide text is on screen: everything, titles only, or nothing. */
 type TextMode = "full" | "header" | "none";
 type TransitionVersion = "A" | "B" | "C";
+type OpenerStage = "first-loop" | "playing-main" | "repeat-loop" | "done";
 
 interface Scene {
   id: number;
@@ -46,7 +46,6 @@ interface Scene {
   hudLabelHe: string;
   dataLine?: string;
   layout: SlideLayout;
-  /** Retained only to satisfy the shared transition components' SceneData shape. */
   panelPosition: "bottom-center";
 }
 
@@ -61,7 +60,17 @@ const ACCENT_COLORS = [
   "#A855F7",
   "#FFB830",
   "#00D4FF",
+  "#00E676",
+  "#FF2E3B",
+  "#3D7BFF",
+  "#00D4FF",
 ];
+
+const OPENER_VIDEOS = {
+  firstLoop: "/presentations/hativa/videos/opener/opener_first_loop.mp4",
+  main: "/presentations/hativa/videos/opener/Opener.mp4",
+  repeatLoop: "/presentations/hativa/videos/opener/opener_repeat.mp4",
+};
 
 function resolveAsset(filename: string, folder: "frames" | "videos"): string {
   if (!filename) return "";
@@ -106,6 +115,7 @@ interface ActiveTransition {
 
 export default function HativaPresPage() {
   const STORAGE_PREFIX = "hativa-pres";
+  const [openerStage, setOpenerStage] = useState<OpenerStage>("first-loop");
   const [currentScene, setCurrentScene] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [imagesLoaded, setImagesLoaded] = useState(false);
@@ -122,7 +132,7 @@ export default function HativaPresPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [panelSize, setPanelSize] = useState<"lg" | "md" | "sm">("lg");
-  const [textMode, setTextMode] = useState<TextMode>("header");
+  const [textMode, setTextMode] = useState<TextMode>("none");
   const [panelOverrides, setPanelOverrides] = useState<PanelOverrides>({});
   const [textBoxes, setTextBoxes] = useState<TextBoxes>({});
   const [selectedTextBox, setSelectedTextBox] = useState<string | null>(null);
@@ -133,9 +143,16 @@ export default function HativaPresPage() {
   const prevBgRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const videoBgRef = useRef<any>(null);
+  const openerVideoRef = useRef<HTMLVideoElement>(null);
   const isTransitioningRef = useRef(false);
   const currentSceneRef = useRef(0);
+  const openerStageRef = useRef<OpenerStage>("first-loop");
   const gsapObserverRef = useRef<ReturnType<typeof Observer.create> | null>(null);
+
+  // Sync openerStageRef
+  useEffect(() => {
+    openerStageRef.current = openerStage;
+  }, [openerStage]);
 
   // Language persistence
   useEffect(() => {
@@ -146,7 +163,7 @@ export default function HativaPresPage() {
     if (typeof window !== "undefined") localStorage.setItem(`${STORAGE_PREFIX}-lang`, language);
   }, [language]);
 
-  // Text-mode persistence
+  // Text-mode persistence (defaults to "none")
   useEffect(() => {
     const saved = typeof window !== "undefined" ? localStorage.getItem(`${STORAGE_PREFIX}-textmode`) : null;
     if (saved === "full" || saved === "header" || saved === "none") setTextMode(saved);
@@ -240,7 +257,7 @@ export default function HativaPresPage() {
     [currentScene, selectedTextBox]
   );
 
-  // Preload images
+  // Preload images / videos ready check
   useEffect(() => {
     let loaded = 0;
     const total = scenes.length;
@@ -257,7 +274,7 @@ export default function HativaPresPage() {
     });
     const fallback = setTimeout(() => {
       setImagesLoaded(true);
-    }, 4000);
+    }, 3000);
     return () => clearTimeout(fallback);
   }, []);
 
@@ -265,6 +282,36 @@ export default function HativaPresPage() {
   useEffect(() => {
     currentSceneRef.current = currentScene;
   }, [currentScene]);
+
+  // Opener video source control & seamless playback
+  useEffect(() => {
+    const v = openerVideoRef.current;
+    if (!v) return;
+
+    if (openerStage === "first-loop") {
+      v.src = OPENER_VIDEOS.firstLoop;
+      v.loop = true;
+      v.load();
+      v.play().catch(() => {});
+    } else if (openerStage === "playing-main") {
+      v.src = OPENER_VIDEOS.main;
+      v.loop = false;
+      v.load();
+      v.play().catch(() => {});
+    } else if (openerStage === "repeat-loop") {
+      v.src = OPENER_VIDEOS.repeatLoop;
+      v.loop = true;
+      v.load();
+      v.play().catch(() => {});
+    }
+  }, [openerStage]);
+
+  // Handler for Opener.mp4 ending
+  const handleMainOpenerEnded = useCallback(() => {
+    if (openerStageRef.current === "playing-main") {
+      setOpenerStage("repeat-loop");
+    }
+  }, []);
 
   // Robust panel animation whenever currentScene or textMode changes
   useEffect(() => {
@@ -381,6 +428,13 @@ export default function HativaPresPage() {
 
   const doGsapTransition = useCallback(
     (nextIndex: number, dir: number) => {
+      if (openerStageRef.current !== "done") {
+        setOpenerStage("done");
+        setCurrentScene(nextIndex);
+        currentSceneRef.current = nextIndex;
+        return;
+      }
+
       const fromScene = scenes[currentSceneRef.current];
       const toScene = scenes[nextIndex];
       if (mediaMode === "video" && fromScene.video && toScene.video) {
@@ -392,9 +446,23 @@ export default function HativaPresPage() {
     [mediaMode, doVideoTransition, doImageTransition]
   );
 
+  // Advance opener sequence on click or action
+  const handleOpenerAdvance = useCallback(() => {
+    const stage = openerStageRef.current;
+    if (stage === "first-loop") {
+      setOpenerStage("playing-main");
+    } else if (stage === "playing-main") {
+      setOpenerStage("repeat-loop");
+    } else if (stage === "repeat-loop") {
+      setOpenerStage("done");
+      setCurrentScene(0);
+      currentSceneRef.current = 0;
+    }
+  }, []);
+
   // Autoplay handler
   useEffect(() => {
-    if (scrollMode === "autoplay") {
+    if (scrollMode === "autoplay" && openerStage === "done") {
       setAutoplayProgress(0);
       const progressInterval = setInterval(() => {
         setAutoplayProgress((p) => (p >= 100 ? 0 : p + 100 / 60));
@@ -411,7 +479,7 @@ export default function HativaPresPage() {
       if (autoplayRef.current) clearInterval(autoplayRef.current);
       setAutoplayProgress(0);
     }
-  }, [scrollMode, doGsapTransition]);
+  }, [scrollMode, openerStage, doGsapTransition]);
 
   // Register GSAP Observer
   useEffect(() => {
@@ -426,12 +494,24 @@ export default function HativaPresPage() {
     gsapObserverRef.current = Observer.create({
       type: "wheel,touch,pointer",
       onDown: () => {
-        const curr = currentSceneRef.current;
-        if (curr < scenes.length - 1) doGsapTransition(curr + 1, 1);
+        if (openerStageRef.current !== "done") {
+          handleOpenerAdvance();
+        } else {
+          const curr = currentSceneRef.current;
+          if (curr < scenes.length - 1) doGsapTransition(curr + 1, 1);
+        }
       },
       onUp: () => {
-        const curr = currentSceneRef.current;
-        if (curr > 0) doGsapTransition(curr - 1, -1);
+        if (openerStageRef.current !== "done") {
+          if (openerStageRef.current === "repeat-loop") setOpenerStage("first-loop");
+        } else {
+          const curr = currentSceneRef.current;
+          if (curr > 0) {
+            doGsapTransition(curr - 1, -1);
+          } else {
+            setOpenerStage("repeat-loop");
+          }
+        }
       },
       wheelSpeed: -1,
       tolerance: 10,
@@ -443,7 +523,7 @@ export default function HativaPresPage() {
       gsapObserverRef.current = null;
       document.body.style.overflow = "";
     };
-  }, [scrollMode, doGsapTransition]);
+  }, [scrollMode, handleOpenerAdvance, doGsapTransition]);
 
   // Keyboard & Mouse Click Navigation
   useEffect(() => {
@@ -456,16 +536,28 @@ export default function HativaPresPage() {
         e.key === "ArrowRight"
       ) {
         e.preventDefault();
-        const curr = currentSceneRef.current;
-        if (curr < scenes.length - 1) doGsapTransition(curr + 1, 1);
+        if (openerStageRef.current !== "done") {
+          handleOpenerAdvance();
+        } else {
+          const curr = currentSceneRef.current;
+          if (curr < scenes.length - 1) doGsapTransition(curr + 1, 1);
+        }
       } else if (
         e.key === "ArrowUp" ||
         e.key === "PageUp" ||
         e.key === "ArrowLeft"
       ) {
         e.preventDefault();
-        const curr = currentSceneRef.current;
-        if (curr > 0) doGsapTransition(curr - 1, -1);
+        if (openerStageRef.current !== "done") {
+          if (openerStageRef.current === "repeat-loop") setOpenerStage("first-loop");
+        } else {
+          const curr = currentSceneRef.current;
+          if (curr > 0) {
+            doGsapTransition(curr - 1, -1);
+          } else {
+            setOpenerStage("repeat-loop");
+          }
+        }
       }
     };
 
@@ -478,9 +570,14 @@ export default function HativaPresPage() {
       ) {
         return;
       }
-      const curr = currentSceneRef.current;
-      if (curr < scenes.length - 1) {
-        doGsapTransition(curr + 1, 1);
+
+      if (openerStageRef.current !== "done") {
+        handleOpenerAdvance();
+      } else {
+        const curr = currentSceneRef.current;
+        if (curr < scenes.length - 1) {
+          doGsapTransition(curr + 1, 1);
+        }
       }
     };
 
@@ -490,7 +587,7 @@ export default function HativaPresPage() {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("click", handleMouseClick);
     };
-  }, [doGsapTransition]);
+  }, [handleOpenerAdvance, doGsapTransition]);
 
   const scene = scenes[currentScene];
   const override = panelOverrides[currentScene] || {};
@@ -527,8 +624,34 @@ export default function HativaPresPage() {
         </div>
       )}
 
-      {/* Main Background Image / Video */}
-      {mediaMode === "video" && scene.video ? (
+      {/* Main Background Video / Image Layer */}
+      {openerStage !== "done" ? (
+        <>
+          <video
+            ref={openerVideoRef}
+            className="x-pres-video-bg"
+            autoPlay
+            muted
+            playsInline
+            onEnded={handleMainOpenerEnded}
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100vw",
+              height: "100vh",
+              objectFit: "fill",
+              objectPosition: "center center",
+              zIndex: 1,
+            }}
+          />
+          {/* Preload repeater for fast 0ms transition */}
+          <video
+            src={OPENER_VIDEOS.repeatLoop}
+            preload="auto"
+            style={{ display: "none" }}
+          />
+        </>
+      ) : mediaMode === "video" && scene.video ? (
         <VideoBackground
           ref={videoBgRef}
           currentSrc={scene.video}
@@ -554,6 +677,58 @@ export default function HativaPresPage() {
       <div className="x-pres-frame-overlay" />
       <div className="x-pres-scanlines" />
 
+      {/* Top Left Brand Logo — hovers above all scenes with transparency preserved */}
+      <div
+        className="x-pres-brand-logo-wrapper"
+        style={{
+          position: "fixed",
+          top: "24px",
+          left: "28px",
+          zIndex: 100,
+          pointerEvents: "none",
+          userSelect: "none",
+          display: "flex",
+          alignItems: "center",
+          filter: "drop-shadow(0 2px 12px rgba(0, 0, 0, 0.6))",
+        }}
+      >
+        <img
+          src="/presentations/hativa/logo.png"
+          alt="Hativa Logo"
+          style={{
+            height: "clamp(64px, 8.4vh, 104px)",
+            width: "auto",
+            objectFit: "contain",
+          }}
+        />
+      </div>
+
+      {/* Top Right Brand Logo — hovers above all scenes with transparency preserved */}
+      <div
+        className="x-pres-brand-logo-right-wrapper"
+        style={{
+          position: "fixed",
+          top: "24px",
+          right: "68px",
+          zIndex: 100,
+          pointerEvents: "none",
+          userSelect: "none",
+          display: "flex",
+          alignItems: "center",
+          filter: "drop-shadow(0 2px 12px rgba(0, 0, 0, 0.6))",
+        }}
+      >
+        <img
+          src="/presentations/hativa/logo_right.png"
+          alt="Hativa Right Logo"
+          style={{
+            height: "clamp(64px, 8.4vh, 104px)",
+            width: "auto",
+            objectFit: "contain",
+          }}
+        />
+      </div>
+
       {/* HUD Frame Elements */}
       <div className="x-pres-hud">
         <div className="x-pres-hud-bracket x-pres-hud-tl" />
@@ -564,12 +739,25 @@ export default function HativaPresPage() {
 
       {/* Slide Navigation Dots */}
       <div className="x-pres-nav">
+        {/* Opener Dot */}
+        <button
+          className={`x-pres-nav-dot ${openerStage !== "done" ? "active" : ""}`}
+          onClick={() => setOpenerStage("first-loop")}
+          title="Opener Video"
+          style={{
+            borderColor: openerStage !== "done" ? "#00D4FF" : undefined,
+          }}
+        />
+        {/* 12 Presentation Slide Dots */}
         {scenes.map((s, idx) => (
           <button
             key={s.id}
-            className={`x-pres-nav-dot ${idx === currentScene ? "active" : ""}`}
-            onClick={() => doGsapTransition(idx, idx > currentScene ? 1 : -1)}
-            title={s.titleEn}
+            className={`x-pres-nav-dot ${openerStage === "done" && idx === currentScene ? "active" : ""}`}
+            onClick={() => {
+              setOpenerStage("done");
+              doGsapTransition(idx, idx > currentScene ? 1 : -1);
+            }}
+            title={`Slide ${idx + 1}: ${s.titleEn}`}
           />
         ))}
       </div>
@@ -695,7 +883,7 @@ export default function HativaPresPage() {
       </AnimatePresence>
 
       {/* Slide text — bespoke per-slide placement, see SlidePanels.tsx */}
-      {textMode !== "none" && (
+      {openerStage === "done" && textMode !== "none" && (
         <SlidePanels
           ref={panelRef}
           scene={scene}

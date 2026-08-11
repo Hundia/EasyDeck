@@ -6,8 +6,8 @@
       "he"
     ],
     "defaultLanguage": "he",
-    "slideCount": 8,
-    "note": "All 8 images generated. Outstanding: regenerate slide-04a (objects too small, too few motion sinks).",
+    "slideCount": 12,
+    "note": "12 video slides with opener video sequence.",
     "textTheme": {
       "default": "light",
       "light": {
@@ -41,8 +41,8 @@
       "id": "slide-01",
       "order": 1,
       "act": 1,
-      "image": "1785337141580_Miniature_scale_model_operations.jpeg",
-      "video": "1785337141580_Miniature_scale_model_operations.mp4",
+      "image": "1.mp4",
+      "video": "1.mp4",
       "diorama": "D1",
       "en": {
         "act": "Part 1 — Global Shift",
@@ -69,10 +69,6 @@
         "vendor",
         "peer-reviewed"
       ],
-      "textBox": {
-        "zone": "band",
-        "theme": "light"
-      },
       "layout": {
         "kind": "band",
         "header": {
@@ -92,8 +88,8 @@
       "id": "slide-02",
       "order": 2,
       "act": 1,
-      "image": "1785337141580_Miniature_city_diorama_box.jpeg",
-      "video": "1785337141580_Miniature_city_diorama_box.mp4",
+      "image": "2.mp4",
+      "video": "2.mp4",
       "diorama": "D2",
       "en": {
         "act": "Part 1 — Global Shift",
@@ -120,10 +116,6 @@
         "vendor",
         "vendor"
       ],
-      "textBox": {
-        "zone": "sides",
-        "theme": "light"
-      },
       "layout": {
         "kind": "sides",
         "en": {
@@ -140,8 +132,8 @@
       "id": "slide-03",
       "order": 3,
       "act": 2,
-      "image": "1785337141580_Miniature_scale_model_diorama.jpeg",
-      "video": "1785337141580_Miniature_scale_model_diorama.mp4",
+      "image": "3.mp4",
+      "video": "3.mp4",
       "diorama": "D3",
       "en": {
         "act": "Part 2 — The Defense Disruption",
@@ -168,10 +160,6 @@
         "press",
         "press"
       ],
-      "textBox": {
-        "zone": "band",
-        "theme": "light"
-      },
       "layout": {
         "kind": "band",
         "header": {
@@ -188,12 +176,12 @@
       }
     },
     {
-      "id": "slide-04a",
+      "id": "slide-04",
       "order": 4,
       "act": 2,
-      "image": "1785337141579_Miniature_scale_model_surveillan.jpeg",
-      "video": "1785337141579_Miniature_scale_model_surveillan.mp4",
-      "diorama": "D4a",
+      "image": "4.mp4",
+      "video": "4.mp4",
+      "diorama": "D4",
       "en": {
         "act": "Part 2 — The Defense Disruption",
         "title": "The Israeli Ecosystem: Hardware Speed, Software Advantage",
@@ -202,7 +190,7 @@
           "XTEND: MVP in 12 months, operational with the IDF and US DoD within 24. XOS spatial computing lets non-pilots operate tactical drones",
           "UVision: Hero-series loitering munitions with real-time automatic target recognition — $982M US Army IDIQ (October 2025)"
         ],
-        "footer": "SLIDE 04A // ISRAELI PHYSICAL DEFENSE"
+        "footer": "SLIDE 04 // ISRAELI PHYSICAL DEFENSE"
       },
       "he": {
         "act": "חלק 2 — הדיסרפציה הביטחונית",
@@ -212,17 +200,13 @@
           "XTEND: MVP תוך 12 חודשים, מבצעי בצה\"ל ובמשרד ההגנה האמריקאי תוך 24. פלטפורמת XOS מאפשרת הפעלת רחפנים טקטיים ללא הכשרת טיס",
           "UVision: חימוש משוטט מסדרת Hero עם זיהוי מטרות אוטומטי בזמן אמת — חוזה IDIQ בהיקף $982M מצבא ארה\"ב (אוקטובר 2025)"
         ],
-        "footer": "שקף 04A // הגנה פיזית ישראלית"
+        "footer": "שקף 04 // הגנה פיזית ישראלית"
       },
       "provenance": [
         "press",
         "research",
         "press"
       ],
-      "textBox": {
-        "zone": "band",
-        "theme": "light"
-      },
       "layout": {
         "kind": "band",
         "header": {
@@ -239,12 +223,12 @@
       }
     },
     {
-      "id": "slide-04b",
+      "id": "slide-05",
       "order": 5,
       "act": 2,
-      "image": "1785337141579_Network_node_diorama_with_lights.jpeg",
-      "video": "1785337141579_Network_node_diorama_with_lights.mp4",
-      "diorama": "D4b",
+      "image": "5.mp4",
+      "video": "5.mp4",
+      "diorama": "D5",
       "en": {
         "act": "Part 2 — The Defense Disruption",
         "title": "Sensor-to-Shooter: The Military Operating System Layer",
@@ -253,7 +237,7 @@
           "Edge Processing (Rafael Trophy): Threat evaluation and intercept inside millisecond windows, with no dependence on a datalink",
           "Multi-Sensor Fusion (Elbit DAITA, IAI): Correlating EO, radar, SIGINT and ELINT into a single real-time tactical picture"
         ],
-        "footer": "SLIDE 04B // MILITARY OS"
+        "footer": "SLIDE 05 // MILITARY OS"
       },
       "he": {
         "act": "חלק 2 — הדיסרפציה הביטחונית",
@@ -263,17 +247,13 @@
           "עיבוד בקצה (מעיל רוח, רפאל): זיהוי ויירוט איומים בחלון של אלפיות שנייה, ללא תלות בקו תקשורת",
           "היתוך רב-חיישני (DAITA של אלביט, תע\"א): קישור אופטיקה, מכ\"ם, SIGINT ו-ELINT לתמונה טקטית אחת בזמן אמת"
         ],
-        "footer": "שקף 04B // מערכת הפעלה צבאית"
+        "footer": "שקף 05 // מערכת הפעלה צבאית"
       },
       "provenance": [
         "press",
         "research",
         "research"
       ],
-      "textBox": {
-        "zone": "sides",
-        "theme": "light"
-      },
       "layout": {
         "kind": "sides",
         "en": {
@@ -287,12 +267,12 @@
       }
     },
     {
-      "id": "slide-05",
+      "id": "slide-06",
       "order": 6,
       "act": 3,
-      "image": "1785337141580_Production_line_diorama.jpeg",
-      "video": "1785337141580_Production_line_diorama.mp4",
-      "diorama": "D5",
+      "image": "6.mp4",
+      "video": "6.mp4",
+      "diorama": "D6",
       "en": {
         "act": "Part 3 — Internal Transformation",
         "title": "Where This Meets Us: From Document Islands to a Continuous Digital Thread",
@@ -301,7 +281,7 @@
           "From End-of-Line Testing to Continuous Assurance: Automated test generation, synthetic edge-case synthesis, model-driven triage of static-analysis alerts",
           "The Accreditation Gap: Our V&V frameworks were built for deterministic software. Probabilistic models need new certification standards — built jointly with MAFAT"
         ],
-        "footer": "SLIDE 05 // THE DIGITAL THREAD"
+        "footer": "SLIDE 06 // THE DIGITAL THREAD"
       },
       "he": {
         "act": "חלק 3 — שינוי פנים-ארגוני",
@@ -311,17 +291,13 @@
           "מבדיקות בסוף התהליך לתיקוף רציף: ייצור בדיקות אוטומטי, סינתזת מקרי קצה, והכרעת התראות אבטחה סטטיות בעזרת מודלים",
           "פער ההסמכה: תהליכי ה-V&V שלנו נבנו לתוכנה דטרמיניסטית. מודלים הסתברותיים דורשים תקני הסמכה חדשים — בשיתוף מפא\"ת"
         ],
-        "footer": "שקף 05 // החוט הדיגיטלי"
+        "footer": "שקף 06 // החוט הדיגיטלי"
       },
       "provenance": [
         "research",
         "research",
         "research"
       ],
-      "textBox": {
-        "zone": "band",
-        "theme": "light"
-      },
       "layout": {
         "kind": "band",
         "header": {
@@ -338,12 +314,12 @@
       }
     },
     {
-      "id": "slide-06",
+      "id": "slide-07",
       "order": 7,
       "act": 3,
-      "image": "1785337141580_Diorama_control_room_miniature.jpeg",
-      "video": "1785337141580_Diorama_control_room_miniature.mp4",
-      "diorama": "D6",
+      "image": "7.mp4",
+      "video": "7.mp4",
+      "diorama": "D7",
       "en": {
         "act": "Part 3 — Internal Transformation",
         "title": "The Cultural Shift: The Engineer Above the Loop",
@@ -352,7 +328,7 @@
           "Trust, but Verify: AI output is a draft. The engineer retains accountability for safety and airworthiness, backed by audit logs and automated pipelines",
           "Sovereignty First, Then Scale: On-prem air-gapped platforms with project-level isolation — so security anxiety stops blocking adoption"
         ],
-        "footer": "SLIDE 06 // HUMAN ABOVE THE LOOP"
+        "footer": "SLIDE 07 // HUMAN ABOVE THE LOOP"
       },
       "he": {
         "act": "חלק 3 — שינוי פנים-ארגוני",
@@ -362,17 +338,13 @@
           "Trust, but Verify: פלט ה-AI הוא טיוטה. האחריות לבטיחות ולכשירות נשארת אצל המהנדס, מגובה ביומני ביקורת ובצנרת בדיקות אוטומטית",
           "ריבונות ואז קנה מידה: פלטפורמות מקומיות מנותקות-רשת עם בידוד ברמת הפרויקט — כדי שחשש אבטחתי יפסיק לחסום אימוץ"
         ],
-        "footer": "שקף 06 // האדם מעל הלולאה"
+        "footer": "שקף 07 // האדם מעל הלולאה"
       },
       "provenance": [
         "research",
         "research",
         "research"
       ],
-      "textBox": {
-        "zone": "sides",
-        "theme": "light"
-      },
       "layout": {
         "kind": "sides",
         "en": {
@@ -386,12 +358,12 @@
       }
     },
     {
-      "id": "slide-07",
+      "id": "slide-08",
       "order": 8,
       "act": 3,
-      "image": "1785337141580_Miniature_figures_in_command_room.png",
-      "video": "1785337141580_Miniature_figures_in_command_room.mp4",
-      "diorama": "D7",
+      "image": "8.mp4",
+      "video": "8.mp4",
+      "diorama": "D8",
       "en": {
         "act": "Part 3 — Internal Transformation",
         "title": "The Capability Vision: AI-Enabled Operational Superiority",
@@ -400,7 +372,7 @@
           "Multi-Sensor Fusion: EO, radar, SIGINT and ELINT correlated in real time, filtering EW noise and compressing the decision cycle",
           "Synthetic Validation & Predictive Sustainment: Fleet-wide telemetry predicting component failure before it occurs, auto-triggering spares logistics inside the enclave"
         ],
-        "footer": "SLIDE 07 // NEXT-GEN VISION"
+        "footer": "SLIDE 08 // NEXT-GEN VISION"
       },
       "he": {
         "act": "חלק 3 — שינוי פנים-ארגוני",
@@ -410,17 +382,13 @@
           "היתוך רב-חיישני: קישור אופטיקה, מכ\"ם, SIGINT ו-ELINT בזמן אמת, סינון רעש לוחמה אלקטרונית וקיצור מעגל ההחלטה",
           "תיקוף סינתטי ותחזוקה מנבאת: טלמטריה ברמת הצי החוזה כשל רכיבים מראש ומפעילה אוטומטית לוגיסטיקת חלפים בתוך המובלעת"
         ],
-        "footer": "שקף 07 // חזון הדור הבא"
+        "footer": "שקף 08 // חזון הדור הבא"
       },
       "provenance": [
         "research",
         "research",
         "research"
       ],
-      "textBox": {
-        "zone": "sides",
-        "theme": "light"
-      },
       "layout": {
         "kind": "sides",
         "en": {
@@ -430,6 +398,188 @@
         "he": {
           "x": 0.772,
           "w": 0.205
+        }
+      }
+    },
+    {
+      "id": "slide-09",
+      "order": 9,
+      "act": 3,
+      "image": "9.mp4",
+      "video": "9.mp4",
+      "diorama": "D9",
+      "en": {
+        "act": "Part 3 — Internal Transformation",
+        "title": "Strategic Synthesis: Unified Defense Architecture",
+        "bullets": [
+          "Integrated Node Network: Real-time synchronization across land, sea, air and cyber domains",
+          "Autonomous Defense Mesh: Instant threat detection and response protocol deployment",
+          "Continuous Evolution: AI models continuously retrained on live telemetry telemetry data"
+        ],
+        "footer": "SLIDE 09 // STRATEGIC SYNTHESIS"
+      },
+      "he": {
+        "act": "חלק 3 — שינוי פנים-ארגוני",
+        "title": "סינתזה אסטרטגית: ארכיטקטורת הגנה אחודה",
+        "bullets": [
+          "רשת צמתים משולבת: סנכרון בזמן אמת בין מימדי היבשה, הים, האוויר והסייבר",
+          "מארג הגנה אוטונומי: זיהוי איומים מיידי ופריסת פרוטוקולי תגובה בזמן אמת",
+          "התפתחות רציפה: מודלי AI המתעדכנים באופן רציף על בסיס נתוני טלמטריה מבצעיים"
+        ],
+        "footer": "שקף 09 // סינתזה אסטרטגית"
+      },
+      "provenance": [
+        "research",
+        "research",
+        "research"
+      ],
+      "layout": {
+        "kind": "band",
+        "header": {
+          "top": 0.03,
+          "x": 0.05,
+          "w": 0.9
+        },
+        "body": {
+          "bottom": 0.035,
+          "x": 0.05,
+          "w": 0.9,
+          "maxH": 0.22
+        }
+      }
+    },
+    {
+      "id": "slide-10",
+      "order": 10,
+      "act": 3,
+      "image": "10.mp4",
+      "video": "10.mp4",
+      "diorama": "D10",
+      "en": {
+        "act": "Part 3 — Internal Transformation",
+        "title": "Operational Continuity: Resilient Mission Assurance",
+        "bullets": [
+          "GPS-Denied Resilience: Inertial and visual odometry maintaining pinpoint navigation",
+          "Disrupted Communications Protocol: Decentralized swarm coordination during severe jamming",
+          "Zero-Trust Edge Security: Cryptographic hardware isolation for tactical nodes"
+        ],
+        "footer": "SLIDE 10 // OPERATIONAL CONTINUITY"
+      },
+      "he": {
+        "act": "חלק 3 — שינוי פנים-ארגוני",
+        "title": "רציפות מבצעית: הבטחת משימה חסינה",
+        "bullets": [
+          "חסינות בסביבה חסומת GPS: אודומטריה אינרציאלית וויזואלית לשמירה על ניווט מדויק",
+          "פרוטוקול תקשורת במצב שיבוש: תיאום נחיל מבוזר בזמן חסימות אלקטרוניות קשות",
+          "אבטחת קצה בגישת Zero-Trust: בידוד חומרתי מוצפן לצמתים טקטיים"
+        ],
+        "footer": "שקף 10 // רציפות מבצעית"
+      },
+      "provenance": [
+        "research",
+        "research",
+        "research"
+      ],
+      "layout": {
+        "kind": "sides",
+        "en": {
+          "x": 0.02,
+          "w": 0.218
+        },
+        "he": {
+          "x": 0.762,
+          "w": 0.218
+        }
+      }
+    },
+    {
+      "id": "slide-11",
+      "order": 11,
+      "act": 3,
+      "image": "11.mp4",
+      "video": "11.mp4",
+      "diorama": "D11",
+      "en": {
+        "act": "Part 3 — Internal Transformation",
+        "title": "Tactical Integration: Seamless Force Multiplication",
+        "bullets": [
+          "Human-Machine Teaming: Intuitive spatial control interfaces for tactical operators",
+          "Automated Target Prioritization: Cognitive workload reduction in high-intensity combat",
+          "Cross-Platform Interoperability: Native API integration with legacy command systems"
+        ],
+        "footer": "SLIDE 11 // TACTICAL INTEGRATION"
+      },
+      "he": {
+        "act": "חלק 3 — שינוי פנים-ארגוני",
+        "title": "אינטגרציה טקטית: מכפיל כוח שקוף",
+        "bullets": [
+          "צוות אדם-מכונה: ממשקי שליטה מרחביים אינטואיטיביים למפעילים טקטיים",
+          "תיעדוף מטרות אוטומטי: הפחתת עומס קוגניטיבי בלחימה בעצמה גבוהה",
+          "תאימות בין-פלטפורמית: אינטגרציית API טבעית עם מערכות פיקוד מסורתיות"
+        ],
+        "footer": "שקף 11 // אינטגרציה טקטית"
+      },
+      "provenance": [
+        "research",
+        "research",
+        "research"
+      ],
+      "layout": {
+        "kind": "sides",
+        "en": {
+          "x": 0.02,
+          "w": 0.218
+        },
+        "he": {
+          "x": 0.762,
+          "w": 0.218
+        }
+      }
+    },
+    {
+      "id": "slide-12",
+      "order": 12,
+      "act": 3,
+      "image": "12.mp4",
+      "video": "12.mp4",
+      "diorama": "D12",
+      "en": {
+        "act": "Part 3 — Internal Transformation",
+        "title": "Architectural Roadmap: Building the Next-Gen Defense Core",
+        "bullets": [
+          "Phased Deployment: Enclave-first deployment transitioning to full enterprise integration",
+          "Sovereign AI Infrastructure: Dedicated high-performance compute clusters for defense R&D",
+          "Continuous Talent Transformation: Upskilling engineering teams for model-first architecture"
+        ],
+        "footer": "SLIDE 12 // ARCHITECTURAL ROADMAP"
+      },
+      "he": {
+        "act": "חלק 3 — שינוי פנים-ארגוני",
+        "title": "מפת דרכים ארכיטקטונית: בניית ליבת ההגנה של הדור הבא",
+        "bullets": [
+          "פריסה שלבית: פריסת מובלעות ראשונית המתרחבת לאינטגרציה ארגונית מלאה",
+          "תשתית AI ריבונית: אשכולות מחשוב ייעודיים בעלי ביצועים גבוהים למו\"פ ביטחוני",
+          "טרנספורמציית הון אנושי: הכשרת צוותי הנדסה לארכיטקטורה מבוססת מודלים"
+        ],
+        "footer": "שקף 12 // מפת דרכים ארכיטקטונית"
+      },
+      "provenance": [
+        "research",
+        "research",
+        "research"
+      ],
+      "layout": {
+        "kind": "band",
+        "header": {
+          "top": 0.03,
+          "x": 0.05,
+          "w": 0.9
+        },
+        "body": {
+          "bottom": 0.035,
+          "x": 0.05,
+          "w": 0.9,
+          "maxH": 0.22
         }
       }
     }

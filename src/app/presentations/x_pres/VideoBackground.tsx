@@ -80,9 +80,9 @@ const VideoBackground = forwardRef<VideoBackgroundHandle, Props>(
           style={{
             position: "absolute",
             inset: 0,
-            width: "100%",
-            height: "100%",
-            objectFit,
+            width: "100vw",
+            height: "100vh",
+            objectFit: objectFit || "fill",
             objectPosition: "center center",
             zIndex: 1,
             opacity: prevVisible ? 1 : 0,
@@ -100,9 +100,9 @@ const VideoBackground = forwardRef<VideoBackgroundHandle, Props>(
           style={{
             position: "absolute",
             inset: 0,
-            width: "100%",
-            height: "100%",
-            objectFit,
+            width: "100vw",
+            height: "100vh",
+            objectFit: objectFit || "fill",
             objectPosition: "center center",
             zIndex: 2,
           }}

@@ -289,16 +289,21 @@ export default function HativaPresPage() {
     if (!v) return;
 
     if (openerStage === "first-loop") {
+      v.muted = true;
       v.src = OPENER_VIDEOS.firstLoop;
       v.loop = true;
       v.load();
       v.play().catch(() => {});
     } else if (openerStage === "playing-main") {
+      // Triggered by a user gesture (click/scroll/keypress), so unmuted
+      // autoplay is allowed here — this is the narrated video.
+      v.muted = false;
       v.src = OPENER_VIDEOS.main;
       v.loop = false;
       v.load();
       v.play().catch(() => {});
     } else if (openerStage === "repeat-loop") {
+      v.muted = true;
       v.src = OPENER_VIDEOS.repeatLoop;
       v.loop = true;
       v.load();
@@ -657,6 +662,7 @@ export default function HativaPresPage() {
           currentSrc={scene.video}
           prevSrc={prevVideo}
           prevVisible={prevVisible}
+          muted={false}
         />
       ) : (
         <>

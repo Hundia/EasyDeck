@@ -15,10 +15,11 @@ interface Props {
   prevSrc: string;
   prevVisible: boolean;
   objectFit?: "cover" | "contain";
+  muted?: boolean;
 }
 
 const VideoBackground = forwardRef<VideoBackgroundHandle, Props>(
-  ({ currentSrc, prevSrc, prevVisible, objectFit = "cover" }, ref) => {
+  ({ currentSrc, prevSrc, prevVisible, objectFit = "cover", muted = true }, ref) => {
     const currentRef = useRef<HTMLVideoElement>(null);
     const prevRef = useRef<HTMLVideoElement>(null);
 
@@ -93,7 +94,7 @@ const VideoBackground = forwardRef<VideoBackgroundHandle, Props>(
         <video
           ref={currentRef}
           className="x-pres-video-bg"
-          muted
+          muted={muted}
           autoPlay
           playsInline
           loop

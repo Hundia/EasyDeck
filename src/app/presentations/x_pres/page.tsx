@@ -732,7 +732,12 @@ export default function HativaPresPage() {
           src="/presentations/hativa/logo.png"
           alt="Hativa Logo"
           style={{
-            width: "clamp(193px, 25.4vh, 314px)",
+            // RAFAEL's mark is a solid bold wordmark that fills its canvas,
+            // while the logo on the right is a thin-stroke icon + wordmark
+            // with a lot of internal negative space — matching bounding-box
+            // width alone left RAFAEL reading ~1.7x heavier. Sized down to
+            // ~77% so the two read as equal visual weight, not equal box.
+            width: "clamp(150px, 19.7vh, 243px)",
             height: "auto",
             objectFit: "contain",
           }}

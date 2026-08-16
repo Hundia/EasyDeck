@@ -148,6 +148,10 @@ export default function HativaPresPage() {
   const currentSceneRef = useRef(0);
   const openerStageRef = useRef<OpenerStage>("first-loop");
   const gsapObserverRef = useRef<ReturnType<typeof Observer.create> | null>(null);
+  // Browsers block unmuted autoplay before any user gesture; once the user
+  // has interacted once, this stays true and every later video (including
+  // a re-shown loop) is free to play with sound.
+  const hasInteractedRef = useRef(false);
 
   // Sync openerStageRef
   useEffect(() => {
@@ -288,22 +292,22 @@ export default function HativaPresPage() {
     const v = openerVideoRef.current;
     if (!v) return;
 
+    // Muted until the user's first gesture — required for autoplay before
+    // that point. Once they've interacted, every video (including a
+    // re-shown loop) plays with sound.
+    v.muted = !hasInteractedRef.current;
+
     if (openerStage === "first-loop") {
-      v.muted = true;
       v.src = OPENER_VIDEOS.firstLoop;
       v.loop = true;
       v.load();
       v.play().catch(() => {});
     } else if (openerStage === "playing-main") {
-      // Triggered by a user gesture (click/scroll/keypress), so unmuted
-      // autoplay is allowed here — this is the narrated video.
-      v.muted = false;
       v.src = OPENER_VIDEOS.main;
       v.loop = false;
       v.load();
       v.play().catch(() => {});
     } else if (openerStage === "repeat-loop") {
-      v.muted = true;
       v.src = OPENER_VIDEOS.repeatLoop;
       v.loop = true;
       v.load();
@@ -453,6 +457,7 @@ export default function HativaPresPage() {
 
   // Advance opener sequence on click or action
   const handleOpenerAdvance = useCallback(() => {
+    hasInteractedRef.current = true;
     const stage = openerStageRef.current;
     if (stage === "first-loop") {
       setOpenerStage("playing-main");

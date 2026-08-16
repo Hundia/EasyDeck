@@ -298,22 +298,43 @@ export default function HativaPresPage() {
     v.muted = !hasInteractedRef.current;
 
     if (openerStage === "first-loop") {
+      v.volume = 0.5;
       v.src = OPENER_VIDEOS.firstLoop;
       v.loop = true;
       v.load();
       v.play().catch(() => {});
     } else if (openerStage === "playing-main") {
+      v.volume = 1;
       v.src = OPENER_VIDEOS.main;
       v.loop = false;
       v.load();
       v.play().catch(() => {});
     } else if (openerStage === "repeat-loop") {
+      v.volume = 1;
       v.src = OPENER_VIDEOS.repeatLoop;
       v.loop = true;
       v.load();
       v.play().catch(() => {});
     }
   }, [openerStage]);
+
+  // Keep the opener video alive across tab/window focus changes — some
+  // browsers pause background video after a while and nothing else would
+  // resume it, so it looks "stuck" when you tab back in.
+  useEffect(() => {
+    const resume = () => {
+      const v = openerVideoRef.current;
+      if (v && openerStageRef.current !== "done" && v.paused) {
+        v.play().catch(() => {});
+      }
+    };
+    document.addEventListener("visibilitychange", resume);
+    window.addEventListener("focus", resume);
+    return () => {
+      document.removeEventListener("visibilitychange", resume);
+      window.removeEventListener("focus", resume);
+    };
+  }, []);
 
   // Handler for Opener.mp4 ending
   const handleMainOpenerEnded = useCallback(() => {
@@ -644,6 +665,10 @@ export default function HativaPresPage() {
             muted
             playsInline
             onEnded={handleMainOpenerEnded}
+            onPause={() => {
+              const v = openerVideoRef.current;
+              if (v && openerStageRef.current !== "done") v.play().catch(() => {});
+            }}
             style={{
               position: "absolute",
               inset: 0,

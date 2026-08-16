@@ -692,7 +692,6 @@ export default function HativaPresPage() {
           currentSrc={scene.video}
           prevSrc={prevVideo}
           prevVisible={prevVisible}
-          muted={false}
         />
       ) : (
         <>
@@ -718,7 +717,7 @@ export default function HativaPresPage() {
         className="x-pres-brand-logo-wrapper"
         style={{
           position: "fixed",
-          top: "24px",
+          top: "35px",
           left: "68px",
           zIndex: 100,
           pointerEvents: "none",
@@ -749,7 +748,7 @@ export default function HativaPresPage() {
         className="x-pres-brand-logo-right-wrapper"
         style={{
           position: "fixed",
-          top: "24px",
+          top: "35px",
           right: "68px",
           zIndex: 100,
           pointerEvents: "none",

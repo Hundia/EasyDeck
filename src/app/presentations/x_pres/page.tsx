@@ -717,7 +717,7 @@ export default function HativaPresPage() {
         className="x-pres-brand-logo-wrapper"
         style={{
           position: "fixed",
-          top: "35px",
+          top: "45px",
           left: "68px",
           zIndex: 100,
           pointerEvents: "none",

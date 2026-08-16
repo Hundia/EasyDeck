@@ -719,7 +719,7 @@ export default function HativaPresPage() {
         style={{
           position: "fixed",
           top: "24px",
-          left: "28px",
+          left: "68px",
           zIndex: 100,
           pointerEvents: "none",
           userSelect: "none",
@@ -732,8 +732,8 @@ export default function HativaPresPage() {
           src="/presentations/hativa/logo.png"
           alt="Hativa Logo"
           style={{
-            height: "clamp(64px, 8.4vh, 104px)",
-            width: "auto",
+            width: "clamp(193px, 25.4vh, 314px)",
+            height: "auto",
             objectFit: "contain",
           }}
         />
@@ -758,8 +758,8 @@ export default function HativaPresPage() {
           src="/presentations/hativa/logo_right.png"
           alt="Hativa Right Logo"
           style={{
-            height: "clamp(64px, 8.4vh, 104px)",
-            width: "auto",
+            width: "clamp(193px, 25.4vh, 314px)",
+            height: "auto",
             objectFit: "contain",
           }}
         />

@@ -1,11 +1,11 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Hativa — Operational Briefing',
+  title: 'Intelligence Software Department — Operational Story',
   description: 'A cinematic scrollytelling presentation showcasing operational capabilities.',
 }
 
-export default function HativaLayout({
+export default function XPresLayout({
   children,
 }: {
   children: React.ReactNode
